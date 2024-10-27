@@ -1,9 +1,4 @@
-/*
-Arduino Hall Effect Sensor Project
-by Arvind Sanjeev
-Please check out  http://diyhacking.com for the tutorial of this project.
-DIY Hacking
-*/
+
 
 int LED = 13;
 

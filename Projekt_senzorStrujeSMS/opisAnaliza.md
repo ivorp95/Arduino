@@ -1,6 +1,6 @@
 OPIS
 
-Adruino spojen sa hallovom sondom i baterijom
+Adruino spojen sa hallovom sondom ili andtenom ??   i baterijom 
 osjeti prisutnost magnetskog polja oko vodica
 kada nema magnetskog polja salje sms da nema struje
 
@@ -8,16 +8,6 @@ kada nema magnetskog polja salje sms da nema struje
 
 
 Arduino + Hall effect sensor + gsm sim900 module za arduino
-
-
-
-
-
-
-
-
-
-
 
 
 

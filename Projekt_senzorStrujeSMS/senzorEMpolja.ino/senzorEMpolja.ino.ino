@@ -1,7 +1,7 @@
 
-#define NUMREADINGS 64 // raise this number to increase data smoothing
+#define NUMREADINGS 32        // raise this number to increase data smoothing
 
-int senseLimit = 14; // raise this number to decrease sensitivity (up to 1023 max)
+int senseLimit = 10; // raise this number to decrease sensitivity (up to 1023 max)
 int probePin = 5; // analog 5
 int val = 0; // reading from probePin
 int percentile=0;
@@ -25,7 +25,7 @@ int total = 0;                            // the running total
 int average = 0;                          // final average of the probe reading
 
 //CHANGE THIS TO affect the speed of the updates for numbers. Lower the number the faster it updates.
-int updateTime = 40;
+int updateTime = 60;
 
 void setup() {
 
@@ -97,7 +97,7 @@ void loop() {
     }
 
 
-    if (average >= 400){
+    if (average > 450){
       //showLED4();   // Show a 4
       showLED2();
     }
