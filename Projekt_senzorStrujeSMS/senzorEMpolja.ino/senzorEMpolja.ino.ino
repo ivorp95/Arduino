@@ -1,15 +1,12 @@
 #define NUMREADINGS 32        // raise this number to increase data smoothing
 
-int senseLimit = 10; // raise this number to decrease sensitivity (up to 1023 max)
+int senseLimit = 12; // raise this number to decrease sensitivity (up to 1023 max)
 int probePin = 5; // analog 5
 int val = 0; // reading from probePin
-int percentile=0;
+int trueVal=0, trueValConstrain=0;
 
-int led0=13;    //interlnal led
-
-
+int LED0=13;    //interlnal led
 int LED2 = 3; 
-
 
 // variables for smoothing
 
@@ -22,7 +19,6 @@ int average = 0;                          // final average of the probe reading
 int updateTime = 60;
 
 void setup() {
-
   pinMode(3, OUTPUT); 
   pinMode(13, OUTPUT); 
 
@@ -30,17 +26,22 @@ void setup() {
 
   for (int i = 0; i < NUMREADINGS; i++)
     readings[i] = 0;          
-
     intro();
 }
+
+
+
+
 
 void loop() {
   LEDlow();
   val = analogRead(probePin);  // take a reading from the probe
+  trueVal=val;
 
-  if(val >= 1){                // if the reading isn't zero, proceed
+  if(val >= 0){                // if the reading isn't zero, proceed
     val = constrain(val, 1, senseLimit);  // turn any reading higher than the senseLimit value into the senseLimit value
     val = map(val, 1, senseLimit, 1, 1023);  // remap the constrained value within a 1 to 1023 range
+    trueValConstrain=val;
 
     total -= readings[index];               // subtract the last reading
     readings[index] = val; // read from the sensor
@@ -53,17 +54,22 @@ void loop() {
     average = total / NUMREADINGS;          // calculate the average
 
     if (average > 450){
-      //showLED4();   // Show a 4
       showLED2();
     }
 
     Serial.println(average); // use output to aid in calibrating
-    //Serial.println(percentile);
+    Serial.println(",");
+    Serial.println(trueVal);
 
     delay(updateTime);
   }
 
 }
+
+
+
+
+
 
 void showLED2(){
   LEDlow();
