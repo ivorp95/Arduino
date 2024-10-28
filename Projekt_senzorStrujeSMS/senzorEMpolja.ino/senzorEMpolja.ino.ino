@@ -4,9 +4,13 @@ int senseLimit = 12; // raise this number to decrease sensitivity (up to 1023 ma
 int probePin = 5; // analog 5
 int val = 0; // reading from probePin
 int trueVal=0, trueValConstrain=0;
+//float EMA_a = 0.06;
 
 int LED0=13;    //interlnal led
-int LED2 = 3; 
+int LED2 = 3;
+int LED3 = 4;
+int LED4 = 5; 
+
 
 // variables for smoothing
 
@@ -20,6 +24,8 @@ int updateTime = 60;
 
 void setup() {
   pinMode(3, OUTPUT); 
+  pinMode(4, OUTPUT); 
+  pinMode(5, OUTPUT); 
   pinMode(13, OUTPUT); 
 
   Serial.begin(38400);
@@ -38,7 +44,7 @@ void loop() {
   val = analogRead(probePin);  // take a reading from the probe
   trueVal=val;
 
-  if(val >= 0){                // if the reading isn't zero, proceed
+  if(val > 0){                // if the reading isn't zero, proceed
     val = constrain(val, 1, senseLimit);  // turn any reading higher than the senseLimit value into the senseLimit value
     val = map(val, 1, senseLimit, 1, 1023);  // remap the constrained value within a 1 to 1023 range
     trueValConstrain=val;
@@ -53,15 +59,19 @@ void loop() {
 
     average = total / NUMREADINGS;          // calculate the average
 
-    if (average > 450){
+    if (average > 50){
       showLED2();
     }
 
+    if (average > 350){
+      showLED4();
+    }
+
+    if (average > 850){
+      showLED3();
+    }
+
     Serial.println(average); // use output to aid in calibrating
-    Serial.println(",");
-    Serial.println(trueVal);
-    Serial.println(",");
-    Serial.println(trueValConstrain);
 
     delay(updateTime);
   }
@@ -78,38 +88,30 @@ void showLED2(){
   digitalWrite(LED2, HIGH);
 }
 
+void showLED3(){
+  LEDlow();
+  digitalWrite(LED3, HIGH);
+}
+
+void showLED4(){
+  LEDlow();
+  digitalWrite(LED4, HIGH);
+}
+
 void LEDlow(){
   digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, LOW);
 }    
 
 void intro(){
   showLED2();
   delay(300);
   LEDlow();
-  showLED2();
+  showLED3();
   delay(300);
   LEDlow();
-  showLED2();
-  delay(300);
-  LEDlow();
-
-  showLED2();
-  delay(600);
-  LEDlow();
-  showLED2();
-  delay(600);
-  LEDlow();
-  showLED2();
-  delay(600);
-  LEDlow();
-
-  showLED2();
-  delay(300);
-  LEDlow();
-  showLED2();
-  delay(300);
-  LEDlow();
-  showLED2();
+  showLED4();
   delay(300);
   LEDlow();
 }
