@@ -60,6 +60,8 @@ void loop() {
     Serial.println(average); // use output to aid in calibrating
     Serial.println(",");
     Serial.println(trueVal);
+    Serial.println(",");
+    Serial.println(trueValConstrain);
 
     delay(updateTime);
   }
