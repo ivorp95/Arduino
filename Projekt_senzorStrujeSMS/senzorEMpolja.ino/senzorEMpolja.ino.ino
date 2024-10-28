@@ -3,8 +3,11 @@
 int senseLimit = 12; // raise this number to decrease sensitivity (up to 1023 max)
 int probePin = 5; // analog 5
 int val = 0; // reading from probePin
-int trueVal=0, trueValConstrain=0;
-//float EMA_a = 0.06;
+int trueVal=0;
+
+float EMA_a = 0.06;     //initialization of EMA alpha
+int EMA_S = 0; 
+int EMA_S_map = 0;
 
 int LED0=13;    //interlnal led
 int LED2 = 3;
@@ -30,6 +33,8 @@ void setup() {
 
   Serial.begin(38400);
 
+  EMA_S = analogRead(probePin);
+
   for (int i = 0; i < NUMREADINGS; i++)
     readings[i] = 0;          
     intro();
@@ -47,7 +52,9 @@ void loop() {
   if(val > 0){                // if the reading isn't zero, proceed
     val = constrain(val, 1, senseLimit);  // turn any reading higher than the senseLimit value into the senseLimit value
     val = map(val, 1, senseLimit, 1, 1023);  // remap the constrained value within a 1 to 1023 range
-    trueValConstrain=val;
+
+    EMA_S = (EMA_a*val) + ((1-EMA_a)*EMA_S);
+    EMA_S_map=map(EMA_S,1,senseLimit,1,1023);
 
     total -= readings[index];               // subtract the last reading
     readings[index] = val; // read from the sensor
@@ -59,7 +66,7 @@ void loop() {
 
     average = total / NUMREADINGS;          // calculate the average
 
-    if (average > 50){
+    if (average > 100){
       showLED2();
     }
 
@@ -67,11 +74,13 @@ void loop() {
       showLED4();
     }
 
-    if (average > 850){
+    if (average > 700){
       showLED3();
     }
 
     Serial.println(average); // use output to aid in calibrating
+    //Serial.println(",");
+    //Serial.println(EMA_S_map);
 
     delay(updateTime);
   }
@@ -106,12 +115,12 @@ void LEDlow(){
 
 void intro(){
   showLED2();
-  delay(300);
+  delay(5000);
   LEDlow();
   showLED3();
-  delay(300);
+  delay(500);
   LEDlow();
   showLED4();
-  delay(300);
+  delay(500);
   LEDlow();
 }
