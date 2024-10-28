@@ -17,7 +17,7 @@ Arduino + Hall effect sensor + gsm sim900 module za arduino
 
 
 
-
+https://randomnerdtutorials.com/sim900-gsm-gprs-shield-arduino/
 
 https://www.instructables.com/Arduino-EMF-Detector/
 
