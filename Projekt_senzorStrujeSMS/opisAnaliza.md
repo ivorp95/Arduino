@@ -1,6 +1,7 @@
 OPIS
 
 Adruino spojen sa hallovom sondom ili andtenom ??   i baterijom 
+antena od 20 cm zice zavijena u zavojnicu - prototip radi 
 osjeti prisutnost magnetskog polja oko vodica
 kada nema magnetskog polja salje sms da nema struje
 

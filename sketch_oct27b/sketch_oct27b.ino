@@ -1,5 +1,5 @@
 
-int ledTipkalo = 3; 
+int ledTipkalo = 3;
 
 
 void setup() {
