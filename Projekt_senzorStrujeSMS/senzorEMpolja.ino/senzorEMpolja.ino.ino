@@ -1,43 +1,50 @@
-#define NUMREADINGS 32        // raise this number to increase data smoothing
 
-int senseLimit = 12; // raise this number to decrease sensitivity (up to 1023 max)
-int probePin = 5; // analog 5
-int val = 0; // reading from probePin
-int trueVal=0;
 
-float EMA_a = 0.06;     //initialization of EMA alpha
-int EMA_S = 0; 
+#include <sim900.h>          //library za koristenje SIM900 modula za mobilne mreze
+#include <SoftwareSerial.h>  //softwareSerial za koristenje digitalnih pinova kao serijska komunikacija
+
+
+#define NUMREADINGS 32  // raise this number to increase data smoothing
+
+
+int senseLimit = 12;  // raise this number to decrease sensitivity (up to 1023 max)
+int probePin = 5;     // analog 5
+int val = 0;          // reading from probePin
+int trueVal = 0;
+
+float EMA_a = 0.06;  //initialization of EMA alpha
+int EMA_S = 0;
 int EMA_S_map = 0;
 
-int LED0=13;    //interlnal led
-int LED2 = 3;
-int LED3 = 4;
-int LED4 = 5; 
+int LED0 = 13;  //interlnal led
+int LED2 = 3;   //PLAVA
+int LED3 = 4;   //ZELENA
+int LED4 = 5;   //CRVENA
 
 
 // variables for smoothing
 
-int readings[NUMREADINGS];                // the readings from the analog input
-int index = 0;                            // the index of the current reading
-int total = 0;                            // the running total
-int average = 0;                          // final average of the probe reading
+int readings[NUMREADINGS];  // the readings from the analog input
+int index = 0;              // the index of the current reading
+int total = 0;              // the running total
+int average = 0;            // final average of the probe reading
 
 //CHANGE THIS TO affect the speed of the updates for numbers. Lower the number the faster it updates.
 int updateTime = 60;
 
 void setup() {
-  pinMode(3, OUTPUT); 
-  pinMode(4, OUTPUT); 
-  pinMode(5, OUTPUT); 
-  pinMode(13, OUTPUT); 
+  pinMode(3, OUTPUT);
+  pinMode(4, OUTPUT);
+  pinMode(5, OUTPUT);
+  pinMode(13, OUTPUT);
 
   Serial.begin(38400);
 
   EMA_S = analogRead(probePin);
 
   for (int i = 0; i < NUMREADINGS; i++)
-    readings[i] = 0;          
-    intro();
+    readings[i] = 0;
+  intro();
 }
 
 
@@ -47,44 +54,46 @@ void setup() {
 void loop() {
   LEDlow();
   val = analogRead(probePin);  // take a reading from the probe
-  trueVal=val;
+  trueVal = val;
 
-  if(val > 0){                // if the reading isn't zero, proceed
-    val = constrain(val, 1, senseLimit);  // turn any reading higher than the senseLimit value into the senseLimit value
+  if (val > 0) {                             // if the reading isn't zero, proceed
+    val = constrain(val, 1, senseLimit);     // turn any reading higher than the senseLimit value into the senseLimit value
     val = map(val, 1, senseLimit, 1, 1023);  // remap the constrained value within a 1 to 1023 range
 
-    EMA_S = (EMA_a*val) + ((1-EMA_a)*EMA_S);
-    EMA_S_map=map(EMA_S,1,senseLimit,1,1023);
+    EMA_S = (EMA_a * val) + ((1 - EMA_a) * EMA_S);
+    EMA_S_map = map(EMA_S, 1, senseLimit, 1, 1023);
 
-    total -= readings[index];               // subtract the last reading
-    readings[index] = val; // read from the sensor
-    total += readings[index];               // add the reading to the total
-    index = (index + 1);                    // advance to the next index
+    total -= readings[index];  // subtract the last reading
+    readings[index] = val;     // read from the sensor
+    total += readings[index];  // add the reading to the total
+    index = (index + 1);       // advance to the next index
 
-    if (index >= NUMREADINGS)               // if we're at the end of the array...
-      index = 0;                            // ...wrap around to the beginning
+    if (index >= NUMREADINGS)  // if we're at the end of the array...
+      index = 0;               // ...wrap around to the beginning
 
-    average = total / NUMREADINGS;          // calculate the average
+    average = total / NUMREADINGS;  // calculate the average
 
-    if (average > 100){
+    if (average > 0) {
+      showLED0();
+    }
+    if (average > 250) {
       showLED2();
     }
 
-    if (average > 350){
+    if (average > 450) {
       showLED4();
     }
 
-    if (average > 700){
+    if (average > 700) {
       showLED3();
     }
 
-    Serial.println(average); // use output to aid in calibrating
+    Serial.println(average);  // use output to aid in calibrating
     //Serial.println(",");
     //Serial.println(EMA_S_map);
 
     delay(updateTime);
   }
-
 }
 
 
@@ -92,28 +101,34 @@ void loop() {
 
 
 
-void showLED2(){
+void showLED2() {
   LEDlow();
   digitalWrite(LED2, HIGH);
 }
 
-void showLED3(){
+void showLED3() {
   LEDlow();
   digitalWrite(LED3, HIGH);
 }
 
-void showLED4(){
+void showLED4() {
   LEDlow();
   digitalWrite(LED4, HIGH);
 }
 
-void LEDlow(){
+void showLED0() {
+  LEDlow();
+  digitalWrite(LED0, HIGH);
+}
+
+void LEDlow() {
   digitalWrite(LED2, LOW);
   digitalWrite(LED3, LOW);
   digitalWrite(LED4, LOW);
-}    
+  digitalWrite(LED0, LOW);
+}
 
-void intro(){
+void intro() {
   showLED2();
   delay(5000);
   LEDlow();
