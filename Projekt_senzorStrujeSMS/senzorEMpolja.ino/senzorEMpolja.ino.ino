@@ -4,7 +4,7 @@
 #include <SoftwareSerial.h>  //softwareSerial za koristenje digitalnih pinova kao serijska komunikacija
 
 
-#define NUMREADINGS 32  // raise this number to increase data smoothing
+#define NUMREADINGS 32  
 
 
 int senseLimit = 12;  // raise this number to decrease sensitivity (up to 1023 max)
@@ -12,9 +12,6 @@ int probePin = 5;     // analog 5
 int val = 0;          // reading from probePin
 int trueVal = 0;
 
-float EMA_a = 0.06;  //initialization of EMA alpha
-int EMA_S = 0;
-int EMA_S_map = 0;
 
 int LED0 = 13;  //interlnal led
 int LED2 = 3;   //PLAVA
@@ -40,14 +37,10 @@ void setup() {
 
   Serial.begin(38400);
 
-  EMA_S = analogRead(probePin);
-
   for (int i = 0; i < NUMREADINGS; i++)
     readings[i] = 0;
   intro();
 }
-
-
 
 
 
@@ -60,18 +53,16 @@ void loop() {
     val = constrain(val, 1, senseLimit);     // turn any reading higher than the senseLimit value into the senseLimit value
     val = map(val, 1, senseLimit, 1, 1023);  // remap the constrained value within a 1 to 1023 range
 
-    EMA_S = (EMA_a * val) + ((1 - EMA_a) * EMA_S);
-    EMA_S_map = map(EMA_S, 1, senseLimit, 1, 1023);
 
     total -= readings[index];  // subtract the last reading
     readings[index] = val;     // read from the sensor
     total += readings[index];  // add the reading to the total
-    index = (index + 1);       // advance to the next index
+    index++;       // advance to the next index
 
     if (index >= NUMREADINGS)  // if we're at the end of the array...
-      index = 0;               // ...wrap around to the beginning
+      index = 0;               
 
-    average = total / NUMREADINGS;  // calculate the average
+    average = total / NUMREADINGS; 
 
     if (average > 0) {
       showLED0();
@@ -88,9 +79,9 @@ void loop() {
       showLED3();
     }
 
-    Serial.println(average);  // use output to aid in calibrating
-    //Serial.println(",");
-    //Serial.println(EMA_S_map);
+    Serial.println(average);
+    
+    //Serial.println(trueVal);
 
     delay(updateTime);
   }

@@ -11,8 +11,7 @@ kada nema magnetskog polja salje sms da nema struje
 Arduino + Hall effect sensor + gsm sim900 module za arduino
 
 
-
-
+sensorpin redings 0-5v mapiranje na 0-1023 antena + 3Mohm 
 
 
 
