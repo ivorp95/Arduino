@@ -1,33 +1,31 @@
 
 
-//#include <sim900.h>          //library za koristenje SIM900 modula za mobilne mreze
-#include <SoftwareSerial.h>  //softwareSerial za koristenje digitalnih pinova kao serijska komunikacija sim900
+//#include <sim900.h>          //library za koristenje SIM900 modula za mobilne mreze ili direktno AT naredbe
+#include <SoftwareSerial.h>  //softwareSerial za koristenje digitalnih pinova za serijsku komunikaciju sa sim900 
 
 #define NUMREADINGS 32
+int updateTime = 100;
 
-SoftwareSerial serial900(7,8); //objekt serial za sim900
+SoftwareSerial serial900(7,8); //objekt serial za sim900(software serial na pinovima D 7 i 8)
 
 int senseLimit = 12;  // raise this number to decrease sensitivity (up to 1023 max)
 int probePin = 5;     // analog 5
 int val = 0;          // reading from probePin
-int trueVal = 0;
+int trueVal = 0;    
 
 
 int LED0 = 13;  //interlnal led
-int LED2 = 3;   //PLAVA
-int LED3 = 4;   //ZELENA
-int LED4 = 5;   //CRVENA
+int LED2B = 3;
+int LED3G = 4;
+int LED4R = 5;
 
 
-// variables for smoothing
+int readings[NUMREADINGS];
+int index = 0;
+int total = 0;            
+int average = 0;            
 
-int readings[NUMREADINGS];  // the readings from the analog input
-int index = 0;              // the index of the current reading
-int total = 0;              // the running total
-int average = 0;            // final average of the probe reading
 
-//CHANGE THIS TO affect the speed of the updates for numbers. Lower the number the faster it updates.
-int updateTime = 60;
 
 
 void setup() {
@@ -52,24 +50,19 @@ void setup() {
   updateSerial();
   serial900.println("AT+CREG?"); //Check whether it has registered in the network
   updateSerial();
-  serial900.println("AT+COPS?"); //network print data
+  serial900.println("AT+COPS?"); //print network data
   updateSerial();
 
-  // slanje SMS
-  serial900.println("AT+CMGF=1"); // Configuring TEXT mode
+  // poziv 10 sekundi i prekid
+  serial900.println("ATD+ +385912016999;");
   updateSerial();
-  serial900.println("AT+CMGS=\"+385912016999\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
+  delay(10000);
+  serial900.println("ATH");
   updateSerial();
-  serial900.print("pozdrav Arduino. radi"); //text content
-  updateSerial();
-  serial900.write(26); //asci za ctrl+z
-
-
-
 
 
   for (int i = 0; i < NUMREADINGS; i++)
-    readings[i] = 0;
+    readings[i] = 0; 
   intro();
 }
 
@@ -84,47 +77,74 @@ void loop() {
     val = constrain(val, 1, senseLimit);     // turn any reading higher than the senseLimit value into the senseLimit value
     val = map(val, 1, senseLimit, 1, 1023);  // remap the constrained value within a 1 to 1023 range
 
-
     total -= readings[index];  // subtract the last reading
-    readings[index] = val;     // read from the sensor
-    total += readings[index];  // add the reading to the total
-    index++;                   // advance to the next index
+    readings[index] = val;    
+    total += readings[index];
+    index++;                  
 
-    if (index >= NUMREADINGS)  // if we're at the end of the array...
+    if (index >= NUMREADINGS)  
       index = 0;
 
     average = total / NUMREADINGS;
 
     if (average > 0) {
       showLED0();
+      
     }
-    if (average > 250) {
-      showLED2();
+    if (average > 200) {
+      showLED2B();
+    }
+
+    if (average > 50 && average <100) {
+      //SMSivor();
     }
 
     if (average > 450) {
-      showLED4();
+      showLED4R();
     }
 
     if (average > 700) {
-      showLED3();
+      showLED3G();
     }
 
-    //Serial.println(average);
+    Serial.println(average);
 
     //Serial.println(trueVal);
 
-    updateSerial();
+    //updateSerial();
 
     delay(updateTime);
   }
 }
 
+void SMSivor(){
 
+  serial900.println("AT+CMGF=1"); // Configuring TEXT mode
+  updateSerial();
+  serial900.println("AT+CMGS=\"+385912016999\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
+  updateSerial();
+  serial900.print("pozdrav Arduino. radi"); //text content
+  updateSerial();
+  serial900.write(26); //asci za ctrl+z
+
+}
+
+
+void SMSigor(){
+
+  serial900.println("AT+CMGF=1");
+  updateSerial();
+  serial900.println("AT+CMGS=\"+385912016000\"");
+  updateSerial();
+  serial900.print("pozdrav Arduino. radi");
+  updateSerial();
+  serial900.write(26);
+
+}
 
 void updateSerial()
 {
-  delay(500);
+  delay(100);
   while (Serial.available()) 
   {
     serial900.write(Serial.read());//Forward what Serial received to Software Serial Port
@@ -138,19 +158,19 @@ void updateSerial()
 
 
 
-void showLED2() {
+void showLED2B() {
   LEDlow();
-  digitalWrite(LED2, HIGH);
+  digitalWrite(LED2B, HIGH);
 }
 
-void showLED3() {
+void showLED3G() {
   LEDlow();
-  digitalWrite(LED3, HIGH);
+  digitalWrite(LED3G, HIGH);
 }
 
-void showLED4() {
+void showLED4R() {
   LEDlow();
-  digitalWrite(LED4, HIGH);
+  digitalWrite(LED4R, HIGH);
 }
 
 void showLED0() {
@@ -159,20 +179,20 @@ void showLED0() {
 }
 
 void LEDlow() {
-  digitalWrite(LED2, LOW);
-  digitalWrite(LED3, LOW);
-  digitalWrite(LED4, LOW);
+  digitalWrite(LED2B, LOW);
+  digitalWrite(LED3G, LOW);
+  digitalWrite(LED4R, LOW);
   digitalWrite(LED0, LOW);
 }
 
 void intro() {
-  showLED2();
+  showLED2B();
   delay(5000);
   LEDlow();
-  showLED3();
+  showLED3G();
   delay(500);
   LEDlow();
-  showLED4();
+  showLED4R();
   delay(500);
   LEDlow();
 }
