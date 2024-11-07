@@ -4,13 +4,13 @@
 #include <SoftwareSerial.h>  //softwareSerial za koristenje digitalnih pinova za serijsku komunikaciju sa sim900 
 
 #define NUMREADINGS 32
-#define MAXBROJAC 200
+#define MAXBROJAC 20000
 
 int updateTime = 100;
 
 SoftwareSerial serial900(7,8); //objekt serial za sim900(software serial na pinovima D 7 i 8)
 
-int senseLimit = 12;  // raise this number to decrease sensitivity (up to 1023 max)
+int senseLimit = 11;  // raise this number to decrease sensitivity (up to 1023 max)
 int probePin = 5;     // analog 5
 int val = 0;          // reading from probePin
 int brojacZaPoruku = 0;    
@@ -41,7 +41,7 @@ void setup() {
 
   serial900.begin(38400);
 
-  Serial.println("inicjalizacija sim900");
+  Serial.println("Inicjalizacija sim900");
   delay(1000);
 
   serial900.println("AT"); //Handshaking with SIM900
@@ -55,7 +55,7 @@ void setup() {
   serial900.println("AT+COPS?"); //print network data
   updateSerial();
 
-  // poziv 10 sekundi i prekid
+  // poziv 5 sekundi i prekid
   serial900.println("ATD+ +385912016999;");
   updateSerial();
   delay(5000);
@@ -72,13 +72,13 @@ void setup() {
 
 void loop() {
   LEDlow();
-  val = analogRead(probePin);  // take a reading from the probe
+  val = analogRead(probePin); 
 
-  if (val > 0) {                             // if the reading isn't zero, proceed
+  if (val > 0) {                             
     val = constrain(val, 1, senseLimit);     // turn any reading higher than the senseLimit value into the senseLimit value
     val = map(val, 1, senseLimit, 1, 1023);  // remap the constrained value within a 1 to 1023 range
 
-    total -= readings[index];  // subtract the last reading
+    total -= readings[index];
     readings[index] = val;    
     total += readings[index];
     index++;                  
@@ -98,9 +98,12 @@ void loop() {
 
     if (average>50 && average <150) {
       brojacZaPoruku++;
+      if (brojacZaPoruku==200){
+        SMSivor();
+      }
     }
-
-    if(brojacZaPoruku>MAXBROJAC){
+    
+    if(brojacZaPoruku>=MAXBROJAC){
       SMSivor();
       brojacZaPoruku=0;
     }
@@ -125,7 +128,7 @@ void loop() {
 void pozivIvor(){
   serial900.println("ATD+ +385912016999;");
   updateSerial();
-  delay(20000);
+  delay(10000);
   serial900.println("ATH");
   updateSerial();
 }
