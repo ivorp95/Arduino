@@ -4,9 +4,14 @@
 #include <SoftwareSerial.h>  //softwareSerial za koristenje digitalnih pinova za serijsku komunikaciju sa sim900 
 
 #define NUMREADINGS 32
-#define MAXBROJAC 20000
+#define MAXBROJAC 2000
 
 int updateTime = 100;
+
+int LED0 = 13;  //interlnal led
+int LED2B = 3;
+int LED3G = 4;
+int LED4R = 5;
 
 SoftwareSerial serial900(7,8); //objekt serial za sim900(software serial na pinovima D 7 i 8)
 
@@ -15,20 +20,10 @@ int probePin = 5;     // analog 5
 int val = 0;          
 int brojacZaPoruku = 0;    
 
-
-int LED0 = 13;  //interlnal led
-int LED2B = 3;
-int LED3G = 4;
-int LED4R = 5;
-
-
 int readings[NUMREADINGS];
 int index = 0;
 int total = 0;            
 int average = 0;            
-
-
-
 
 void setup() {
   pinMode(3, OUTPUT);
@@ -36,14 +31,14 @@ void setup() {
   pinMode(5, OUTPUT);
   pinMode(13, OUTPUT);
 
+  for (int i = 0; i < NUMREADINGS; i++)
+    readings[i] = 0; 
 
   Serial.begin(38400);
-
   serial900.begin(38400);
 
   Serial.println("Inicjalizacija sim900");
   delay(1000);
-
   serial900.println("AT"); //Handshaking with SIM900
   updateSerial();
   serial900.println("AT+CSQ"); //Signal quality test, value range is 0-31 , 31 is the best
@@ -55,16 +50,7 @@ void setup() {
   serial900.println("AT+COPS?"); //print network data
   updateSerial();
 
-  // poziv 5 sekundi i prekid
-  serial900.println("ATD+ +385912016999;");
-  updateSerial();
-  delay(5000);
-  serial900.println("ATH");
-  updateSerial();
-
-
-  for (int i = 0; i < NUMREADINGS; i++)
-    readings[i] = 0; 
+  pozivIvor();
   intro();
 }
 
@@ -72,7 +58,8 @@ void setup() {
 
 void loop() {
   LEDlow();
-  val = analogRead(probePin); 
+  val = analogRead(probePin);
+  Serial.println(val); 
 
   if (val > 0) {                             
     val = constrain(val, 1, senseLimit);     // turn any reading higher than the senseLimit value into the senseLimit value
@@ -88,32 +75,29 @@ void loop() {
 
     average = total / NUMREADINGS;
 
-    if (average > 0) {
-      showLED0();
-      
-    }
-    if (average > 200) {
-      showLED2B();
-    }
 
     if (average>20 && average <180) {
       brojacZaPoruku++;
       if (brojacZaPoruku==200){
         SMSivor();
+        if(brojacZaPoruku>=MAXBROJAC){
+          SMSivor();
+          brojacZaPoruku=0;
+        }
       }
     }
-    
-    if(brojacZaPoruku>=MAXBROJAC){
-      SMSivor();
-      brojacZaPoruku=0;
-    }
 
-    if (average > 450) {
-      showLED4R();
-    }
-
-    if (average > 700) {
-      showLED3G();
+    if (average > 0) {
+      showLED0();
+      if (average > 200) {
+        showLED2B();
+        if (average > 450) {
+          showLED4R();
+          if (average > 700) {
+            showLED3G();
+          }
+        }
+      }
     }
 
     Serial.println(average);
@@ -127,9 +111,20 @@ void loop() {
 
 
 void pozivIvor(){
+  
+  showLED0();
+  delay(200);
+  showLED4R();
+  delay(500);
+  showLED3G();
+  delay(500);
+  showLED2B();
+  delay(500);
+  LEDlow();
+
   serial900.println("ATD+ +385912016999;");
   updateSerial();
-  delay(10000);
+  delay(5000);
   serial900.println("ATH");
   updateSerial();
 }
