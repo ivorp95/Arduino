@@ -5,6 +5,7 @@
 
 #define NUMREADINGS 32
 
+SoftwareSerial serial900(7,8); //objekt serial za sim900
 
 int senseLimit = 12;  // raise this number to decrease sensitivity (up to 1023 max)
 int probePin = 5;     // analog 5
@@ -35,8 +36,19 @@ void setup() {
   pinMode(5, OUTPUT);
   pinMode(13, OUTPUT);
 
+  serial900.begin(38400);
+  serial900.println("AT"); //Handshaking with SIM900
+  updateSerial();
+  serial900.println("AT+CSQ"); //Signal quality test, value range is 0-31 , 31 is the best
+  updateSerial();
+  serial900.println("AT+CCID"); //Read SIM information to confirm whether the SIM is plugged
+  updateSerial();
+  serial900.println("AT+CREG?"); //Check whether it has registered in the network
+  updateSerial();
+
 
   Serial.begin(38400);
+  Serial.println("inicjalizacija sim900")
 
   for (int i = 0; i < NUMREADINGS; i++)
     readings[i] = 0;
@@ -80,9 +92,11 @@ void loop() {
       showLED3();
     }
 
-    Serial.println(average);
+    //Serial.println(average);
 
     //Serial.println(trueVal);
+
+    updateSerial();
 
     delay(updateTime);
   }
@@ -90,6 +104,18 @@ void loop() {
 
 
 
+void updateSerial()
+{
+  delay(500);
+  while (Serial.available()) 
+  {
+    serial900.write(Serial.read());//Forward what Serial received to Software Serial Port
+  }
+  while(serial900.available()) 
+  {
+    Serial.write(serial900.read());//Forward what Software Serial received to Serial Port
+  }
+}
 
 
 
