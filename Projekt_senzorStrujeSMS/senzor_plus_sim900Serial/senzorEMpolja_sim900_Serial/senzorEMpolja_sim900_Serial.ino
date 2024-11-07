@@ -12,7 +12,7 @@ SoftwareSerial serial900(7,8); //objekt serial za sim900(software serial na pino
 
 int senseLimit = 11;  // raise this number to decrease sensitivity (up to 1023 max)
 int probePin = 5;     // analog 5
-int val = 0;          // reading from probePin
+int val = 0;          
 int brojacZaPoruku = 0;    
 
 
@@ -166,6 +166,16 @@ void SMSigor(){
   serial900.print("pozdrav Arduino. radi");
   updateSerial();
   serial900.write(26);
+
+    showLED0();
+  delay(200);
+  showLED4R();
+  delay(200);
+  showLED3G();
+  delay(200);
+  showLED2B();
+  delay(200);
+  LEDlow();
 
 }
 
