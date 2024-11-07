@@ -1,6 +1,6 @@
 
 
-#include <sim900.h>          //library za koristenje SIM900 modula za mobilne mreze
+//#include <sim900.h>          //library za koristenje SIM900 modula za mobilne mreze
 #include <SoftwareSerial.h>  //softwareSerial za koristenje digitalnih pinova kao serijska komunikacija sim900
 
 #define NUMREADINGS 32
@@ -36,7 +36,14 @@ void setup() {
   pinMode(5, OUTPUT);
   pinMode(13, OUTPUT);
 
+
+  Serial.begin(38400);
+
   serial900.begin(38400);
+
+  Serial.println("inicjalizacija sim900");
+  delay(1000);
+
   serial900.println("AT"); //Handshaking with SIM900
   updateSerial();
   serial900.println("AT+CSQ"); //Signal quality test, value range is 0-31 , 31 is the best
@@ -45,10 +52,21 @@ void setup() {
   updateSerial();
   serial900.println("AT+CREG?"); //Check whether it has registered in the network
   updateSerial();
+  serial900.println("AT+COPS?"); //network print data
+  updateSerial();
+
+  // slanje SMS
+  serial900.println("AT+CMGF=1"); // Configuring TEXT mode
+  updateSerial();
+  serial900.println("AT+CMGS=\"+385912016999\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
+  updateSerial();
+  serial900.print("pozdrav Arduino. radi"); //text content
+  updateSerial();
+  serial900.write(26); //asci za ctrl+z
 
 
-  Serial.begin(38400);
-  Serial.println("inicjalizacija sim900")
+
+
 
   for (int i = 0; i < NUMREADINGS; i++)
     readings[i] = 0;
