@@ -121,6 +121,16 @@ void loop() {
   }
 }
 
+
+void pozivIvor(){
+  serial900.println("ATD+ +385912016999;");
+  updateSerial();
+  delay(20000);
+  serial900.println("ATH");
+  updateSerial();
+}
+
+
 void SMSivor(){
 
   serial900.println("AT+CMGF=1"); // Configuring TEXT mode
