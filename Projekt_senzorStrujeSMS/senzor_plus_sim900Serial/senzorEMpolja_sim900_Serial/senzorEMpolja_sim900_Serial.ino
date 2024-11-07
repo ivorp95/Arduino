@@ -135,9 +135,9 @@ void SMSivor(){
 
   serial900.println("AT+CMGF=1"); // Configuring TEXT mode
   updateSerial();
-  serial900.println("AT+CMGS=\"+385912016999\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
+  serial900.println("AT+CMGS=\"+385912016999\"");
   updateSerial();
-  serial900.print("pozdrav Arduino. radi"); //text content
+  serial900.print("pozdrav Arduino. radi"); 
   updateSerial();
   serial900.write(26); //asci za ctrl+z
 
