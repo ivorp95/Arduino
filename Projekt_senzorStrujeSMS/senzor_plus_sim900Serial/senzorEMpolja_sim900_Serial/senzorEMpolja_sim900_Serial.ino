@@ -96,7 +96,7 @@ void loop() {
       showLED2B();
     }
 
-    if (average>50 && average <150) {
+    if (average>20 && average <180) {
       brojacZaPoruku++;
       if (brojacZaPoruku==200){
         SMSivor();
@@ -117,6 +117,7 @@ void loop() {
     }
 
     Serial.println(average);
+    Serial.println(brojacZaPoruku);
 
     updateSerial();
 
@@ -144,6 +145,15 @@ void SMSivor(){
   updateSerial();
   serial900.write(26); //asci za ctrl+z
 
+  showLED0();
+  delay(200);
+  showLED4R();
+  delay(200);
+  showLED3G();
+  delay(200);
+  showLED2B();
+  delay(200);
+  LEDlow();
 }
 
 
