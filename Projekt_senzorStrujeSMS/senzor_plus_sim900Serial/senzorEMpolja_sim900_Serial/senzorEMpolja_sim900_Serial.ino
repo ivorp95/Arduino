@@ -4,6 +4,8 @@
 #include <SoftwareSerial.h>  //softwareSerial za koristenje digitalnih pinova za serijsku komunikaciju sa sim900 
 
 #define NUMREADINGS 32
+#define MAXBROJAC 200
+
 int updateTime = 100;
 
 SoftwareSerial serial900(7,8); //objekt serial za sim900(software serial na pinovima D 7 i 8)
@@ -11,7 +13,7 @@ SoftwareSerial serial900(7,8); //objekt serial za sim900(software serial na pino
 int senseLimit = 12;  // raise this number to decrease sensitivity (up to 1023 max)
 int probePin = 5;     // analog 5
 int val = 0;          // reading from probePin
-int trueVal = 0;    
+int brojacZaPoruku = 0;    
 
 
 int LED0 = 13;  //interlnal led
@@ -56,7 +58,7 @@ void setup() {
   // poziv 10 sekundi i prekid
   serial900.println("ATD+ +385912016999;");
   updateSerial();
-  delay(10000);
+  delay(5000);
   serial900.println("ATH");
   updateSerial();
 
@@ -71,7 +73,6 @@ void setup() {
 void loop() {
   LEDlow();
   val = analogRead(probePin);  // take a reading from the probe
-  trueVal = val;
 
   if (val > 0) {                             // if the reading isn't zero, proceed
     val = constrain(val, 1, senseLimit);     // turn any reading higher than the senseLimit value into the senseLimit value
@@ -95,8 +96,13 @@ void loop() {
       showLED2B();
     }
 
-    if (average > 50 && average <100) {
-      //SMSivor();
+    if (average>50 && average <150) {
+      brojacZaPoruku++;
+    }
+
+    if(brojacZaPoruku>MAXBROJAC){
+      SMSivor();
+      brojacZaPoruku=0;
     }
 
     if (average > 450) {
@@ -109,9 +115,7 @@ void loop() {
 
     Serial.println(average);
 
-    //Serial.println(trueVal);
-
-    //updateSerial();
+    updateSerial();
 
     delay(updateTime);
   }
@@ -142,15 +146,12 @@ void SMSigor(){
 
 }
 
-void updateSerial()
-{
-  delay(100);
-  while (Serial.available()) 
-  {
+void updateSerial(){
+  delay(500);
+  while (Serial.available()) {
     serial900.write(Serial.read());//Forward what Serial received to Software Serial Port
   }
-  while(serial900.available()) 
-  {
+  while(serial900.available()) {
     Serial.write(serial900.read());//Forward what Software Serial received to Serial Port
   }
 }
