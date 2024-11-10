@@ -1,10 +1,8 @@
 
-
-//#include <sim900.h>          //library za koristenje SIM900 modula za mobilne mreze ili direktno AT naredbe
-#include <SoftwareSerial.h>  //softwareSerial za koristenje digitalnih pinova za serijsku komunikaciju sa sim900 
+#include <SoftwareSerial.h>  //softwareSerial za koristenje digitalnih pinova za serijsku komunikaciju sa serial900 
 
 #define NUMREADINGS 32
-#define MAXBROJAC 2000
+#define MAXBROJAC 10000
 
 int updateTime = 100;
 
@@ -13,12 +11,13 @@ int LED2B = 3;
 int LED3G = 4;
 int LED4R = 5;
 
-SoftwareSerial serial900(7,8); //objekt serial za sim900(software serial na pinovima D 7 i 8)
+SoftwareSerial serial900(7,8); //objekt serial za serial900(software serial na pinovima D 7 i 8)
 
 int senseLimit = 11;  // raise this number to decrease sensitivity (up to 1023 max)
 int probePin = 5;     // analog 5
 int val = 0;          
 int brojacZaPoruku = 0;    
+char incoming_char=0;
 
 int readings[NUMREADINGS];
 int index = 0;
@@ -37,29 +36,21 @@ void setup() {
   Serial.begin(38400);
   serial900.begin(38400);
 
-  Serial.println("Inicjalizacija sim900");
-  delay(1000);
-  serial900.println("AT"); //Handshaking with SIM900
-  updateSerial();
-  serial900.println("AT+CSQ"); //Signal quality test, value range is 0-31 , 31 is the best
-  updateSerial();
-  serial900.println("AT+CCID"); //Read SIM information to confirm whether the SIM is plugged
-  updateSerial();
-  serial900.println("AT+CREG?"); //Check whether it has registered in the network
-  updateSerial();
-  serial900.println("AT+COPS?"); //print network data
-  updateSerial();
 
+  Inicjalizacija();
+  delay(200);
   pozivIvor();
+  delay(5000);
   intro();
 }
 
 
 
 void loop() {
+
   LEDlow();
   val = analogRead(probePin);
-  Serial.println(val); 
+
 
   if (val > 0) {                             
     val = constrain(val, 1, senseLimit);     // turn any reading higher than the senseLimit value into the senseLimit value
@@ -78,27 +69,32 @@ void loop() {
 
     if (average>20 && average <180) {
       brojacZaPoruku++;
+      showLED0();
+      delay(100);
+    }
       if (brojacZaPoruku==200){
         SMSivor();
+        brojacZaPoruku++;
+      }
         if(brojacZaPoruku>=MAXBROJAC){
           SMSivor();
           brojacZaPoruku=0;
         }
-      }
-    }
+        
 
-    if (average > 0) {
-      showLED0();
+    if (average > 30) {
+      showLED2B();
+    }
       if (average > 200) {
         showLED2B();
+      }
         if (average > 450) {
           showLED4R();
+        }
           if (average > 700) {
             showLED3G();
           }
-        }
-      }
-    }
+
 
     Serial.println(average);
     Serial.println(brojacZaPoruku);
@@ -110,21 +106,32 @@ void loop() {
 }
 
 
+void Inicjalizacija(){
+
+  Serial.println("Inicjalizacija serial900");
+  delay(1000);
+  serial900.println("AT"); //Handshaking with serial900
+  updateSerial();
+  serial900.println("AT+CSQ"); //Signal quality test, value range is 0-31 , 31 is the best
+  updateSerial();
+  serial900.println("AT+CCID"); //Read SIM information to confirm whether the SIM is plugged
+  updateSerial();
+  serial900.println("AT+CREG?"); //Check whether it has registered in the network
+  updateSerial();
+  serial900.println("AT+COPS?"); //print network data
+  updateSerial();
+}
+
 void pozivIvor(){
   
-  showLED0();
-  delay(200);
-  showLED4R();
-  delay(500);
+
   showLED3G();
   delay(500);
-  showLED2B();
-  delay(500);
-  LEDlow();
+
 
   serial900.println("ATD+ +385912016999;");
   updateSerial();
-  delay(5000);
+  delay(6000);
   serial900.println("ATH");
   updateSerial();
 }
@@ -162,7 +169,7 @@ void SMSigor(){
   updateSerial();
   serial900.write(26);
 
-    showLED0();
+  showLED0();
   delay(200);
   showLED4R();
   delay(200);
@@ -174,7 +181,9 @@ void SMSigor(){
 
 }
 
+
 void updateSerial(){
+  
   delay(500);
   while (Serial.available()) {
     serial900.write(Serial.read());//Forward what Serial received to Software Serial Port
@@ -183,7 +192,6 @@ void updateSerial(){
     Serial.write(serial900.read());//Forward what Software Serial received to Serial Port
   }
 }
-
 
 
 
