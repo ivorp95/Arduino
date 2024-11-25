@@ -2,7 +2,7 @@
 #include <SoftwareSerial.h>  //softwareSerial za koristenje digitalnih pinova za serijsku komunikaciju sa serial900 
 
 #define NUMREADINGS 32
-#define MAXBROJAC 10000
+#define MAXBROJAC 30000
 
 int updateTime = 100;
 
@@ -13,7 +13,7 @@ int LED4R = 5;
 
 SoftwareSerial serial900(7,8); //objekt serial za serial900(software serial na pinovima D 7 i 8)
 
-int senseLimit = 11;  // raise this number to decrease sensitivity (up to 1023 max)
+int senseLimit = 50;  // raise this number to decrease sensitivity (up to 1023 max)
 int probePin = 5;     // analog 5
 int val = 0;          
 int brojacZaPoruku = 0;    
@@ -72,7 +72,7 @@ void loop() {
       showLED0();
       delay(100);
     }
-      if (brojacZaPoruku==200){
+      if (brojacZaPoruku==300){
         SMSivor();
         brojacZaPoruku++;
       }
@@ -88,7 +88,7 @@ void loop() {
       if (average > 200) {
         showLED2B();
       }
-        if (average > 450) {
+        if (average > 350) {
           showLED4R();
         }
           if (average > 700) {
