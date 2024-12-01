@@ -14,6 +14,7 @@ int stanjeTipkala=1;
 int zadnjeStanjeTipkala=1;
 
 //varijable
+unsigned long trajanjeTipkala=0;
 float napon=0;
 int ocitanje=0;
  
@@ -28,8 +29,6 @@ void setup() {
 }
 
 void loop() {
-
-  unsigned long trajanjeTipkala=0;
 
   stanjeTipkala=digitalRead(tipkalo);
   Serial.println(stanjeTipkala);
@@ -46,6 +45,7 @@ void loop() {
 
       if (napon>2.0){
         digitalWrite(LEDcrvena, 0);
+        trajanjeTipkala=0;
 
         for (int i=127; i<256; i+=5){
           analogWrite(LEDzelenaPWM, i);
