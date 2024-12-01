@@ -11,13 +11,15 @@ int LED2B = 3;
 int LED3G = 4;
 int LED4R = 5;
 
+int paljenje=9; //digital 9 na pin 9 sim900 za automatsko paljenje
+
 SoftwareSerial serial900(7,8); //objekt serial za serial900(software serial na pinovima D 7 i 8)
 
-int senseLimit = 50;  // raise this number to decrease sensitivity (up to 1023 max)
+int senseLimit = 12;  // raise this number to decrease sensitivity (up to 1023 max)
 int probePin = 5;     // analog 5
 int val = 0;          
-int brojacZaPoruku = 0;    
-char incoming_char=0;
+int brojacZaPoruku = 0;   
+
 
 int readings[NUMREADINGS];
 int index = 0;
@@ -25,6 +27,11 @@ int total = 0;
 int average = 0;            
 
 void setup() {
+  digitalWrite(paljenje, HIGH);
+  delay(1000);
+  digitalWrite(paljenje, LOW);
+  delay(10000);
+
   pinMode(3, OUTPUT);
   pinMode(4, OUTPUT);
   pinMode(5, OUTPUT);
@@ -40,7 +47,7 @@ void setup() {
   Inicjalizacija();
   delay(200);
   pozivIvor();
-  delay(5000);
+  delay(1000);
   intro();
 }
 
@@ -53,8 +60,8 @@ void loop() {
 
 
   if (val > 0) {                             
-    val = constrain(val, 1, senseLimit);     // turn any reading higher than the senseLimit value into the senseLimit value
-    val = map(val, 1, senseLimit, 1, 1023);  // remap the constrained value within a 1 to 1023 range
+    val = constrain(val, 1, senseLimit);   
+    val = map(val, 1, senseLimit, 1, 1023); 
 
     total -= readings[index];
     readings[index] = val;    
@@ -67,7 +74,7 @@ void loop() {
     average = total / NUMREADINGS;
 
 
-    if (average>20 && average <180) {
+    if (average>=0 && average <250) {
       brojacZaPoruku++;
       showLED0();
       delay(100);
@@ -82,7 +89,7 @@ void loop() {
         }
         
 
-    if (average > 30) {
+    if (average >=0) {
       showLED2B();
     }
       if (average > 200) {
@@ -91,7 +98,7 @@ void loop() {
         if (average > 350) {
           showLED4R();
         }
-          if (average > 700) {
+          if (average > 600) {
             showLED3G();
           }
 
@@ -124,7 +131,7 @@ void Inicjalizacija(){
 
 void pozivIvor(){
   
-
+  Serial.println("Poziv Ivor 6 sec");
   showLED3G();
   delay(500);
 
@@ -138,14 +145,14 @@ void pozivIvor(){
 
 
 void SMSivor(){
-
+  Serial.println("Poruka Ivor.");
   serial900.println("AT+CMGF=1"); // Configuring TEXT mode
   updateSerial();
   serial900.println("AT+CMGS=\"+385912016999\"");
   updateSerial();
-  serial900.print("pozdrav Arduino. radi"); 
+  serial900.print("Arduino Nano: 091-2016-400 Nestanak Napona na senzoru. Oprez"); 
   updateSerial();
-  serial900.write(26); //asci za ctrl+z
+  serial900.write(26); //asci kontrolni znak (26dec 032oct	1Ahex	00011010bin	SUBsym	&#26html;	 	Substitute)
 
   showLED0();
   delay(200);
