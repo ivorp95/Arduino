@@ -131,14 +131,14 @@ void Inicjalizacija(){
 
 void pozivIvor(){
   
-  Serial.println("Poziv Ivor 6 sec");
+  Serial.println("Poziv Ivor 10 sec");
   showLED3G();
-  delay(500);
+  delay(2000);
 
 
   serial900.println("ATD+ +385912016999;");
   updateSerial();
-  delay(6000);
+  delay(10000);
   serial900.println("ATH");
   updateSerial();
 }
