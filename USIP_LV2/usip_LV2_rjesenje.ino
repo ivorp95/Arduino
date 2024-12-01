@@ -61,6 +61,6 @@ void loop() {
       digitalWrite(LEDcrvena, 1);
       digitalWrite(LEDzelenaPWM, 0);
     }
-  //zadnjeStanjeTipkala=stanjeTipkala;
+
 
 }
