@@ -39,7 +39,7 @@ void loop() {
   if (stanjeTipkala==0 && zadnjeStanjeTipkala==1){
     trajanjeTipkala=millis();
   }
-    if(stanjeTipkala==0 && trajanjeTipkal>VRIJEME){
+    if(stanjeTipkala==0 && trajanjeTipkala>VRIJEME){
       ocitanje=analogRead(analogSensor);
       napon=ocitanje*(5.0/1023.0);
       Serial.println(napon);
