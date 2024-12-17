@@ -37,12 +37,15 @@ void loop(){
     unos=Serial.read();
 
     if (unos >= 'A' && unos <= 'Z'){
+      Serial.println(unos);
       ispis_morse_kod(morse_slova[unos-'A']);   //decimalni asci unosa - pomak do prvog slova, daje broj indexa slova ili broja
     }
       else if (unos >= 'a' && unos <= 'z'){
+        Serial.println(unos);
         ispis_morse_kod(morse_slova[unos-'a']);
     }
           else if (unos >= '0' && unos <= '9'){
+            Serial.println(unos);
             ispis_morse_kod(morse_slova[unos-'0']);
     }
               else if (unos >= ' '){
