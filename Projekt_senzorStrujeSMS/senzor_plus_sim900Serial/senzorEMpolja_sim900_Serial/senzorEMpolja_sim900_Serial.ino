@@ -4,6 +4,7 @@
 #define NUMREADINGS 32
 #define MAXBROJAC 30000
 
+
 int updateTime = 100;
 
 int LED0 = 13;  //interlnal led
@@ -70,8 +71,7 @@ void loop() {
 
     if (index >= NUMREADINGS)  
       index = 0;
-
-    average = total / NUMREADINGS;
+      average = total / NUMREADINGS;
 
 
     if (average>=0 && average <250) {
@@ -105,6 +105,8 @@ void loop() {
 
     Serial.println(average);
     Serial.println(brojacZaPoruku);
+
+    Serial.readString()
 
     updateSerial();
 
