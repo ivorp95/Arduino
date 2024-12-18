@@ -32,7 +32,7 @@ void setup(){
 
 void loop(){
 
-  char unos = NULL;
+  char unos;
 
 
   if (Serial.available()){
@@ -65,6 +65,7 @@ void ispis_morse_kod (char *slovoIliBroj){
     ispis_tocka_crta(slovoIliBroj[i]);
     i++;
   }
+    delay(trajanje*3);
 
 }
 
@@ -78,12 +79,13 @@ void ispis_tocka_crta (char tockaIliCrta){
   if (tockaIliCrta=='.'){
     delay(trajanje);
   }
-  else if(tockaIliCrta=='-'){
+  else {
     delay(trajanje*3);
   }
 
   digitalWrite(Crvena,LOW);
   digitalWrite(Zelena,LOW);
   digitalWrite(Plava,LOW);
+  delay(trajanje);
 }
 
