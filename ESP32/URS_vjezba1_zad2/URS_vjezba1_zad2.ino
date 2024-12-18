@@ -1,5 +1,5 @@
 
-int Crvena = 16;
+int Crvena = 13;
 int Zelena = 18;
 int Plava = 17;
 
@@ -18,20 +18,22 @@ char *morse_brojevi[] = {
 void ispis_morse_kod (char *slovoIliBroj);
 void ispis_tocka_crta (char tockaIliCrta);
 
-void setup()
-{
+void setup(){
+
   Serial.begin(9600);
   
-  pinMode(7, OUTPUT);
-  pinMode(6, OUTPUT);
-  pinMode(5, OUTPUT);
+  pinMode(Crvena, OUTPUT);
+  pinMode(Zelena, OUTPUT);
+  pinMode(Plava, OUTPUT);
 
   Serial.println("Za uneseni string na Serial konzolu, ispisuje morsov kod na LED diodi");
 }
 
 
 void loop(){
+
   char unos = NULL;
+
 
   if (Serial.available()){
     unos=Serial.read();

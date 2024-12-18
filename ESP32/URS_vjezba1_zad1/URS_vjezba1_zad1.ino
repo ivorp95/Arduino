@@ -1,16 +1,26 @@
 
-int Crvena = 16
+int Crvena = 16;
 int Zelena = 18;
 int Plava = 17;
+
+int internalLED=13;
+
+char *stringovi[]{"Crvena 1","Crvena 0", "crvena 1", "crvena 0", "CRVENA 1","CRVENA 0",
+"Zelena 1","Zelena 0","zelena 1","zelena 0","ZELENA 1","ZELENA 0",
+"Plava 1","Plava 0","plava 1","plava 0","PLAVA 1","PLAVA 0"};
+
+String unos;
 
 
 void setup()
 {
   Serial.begin(9600);
   
-  pinMode(7, OUTPUT);
-  pinMode(6, OUTPUT);
-  pinMode(5, OUTPUT);
+  pinMode(Crvena, OUTPUT);
+  pinMode(Zelena, OUTPUT);
+  pinMode(Plava, OUTPUT);
+
+  pinMode(internalLED, OUTPUT);
 
   Serial.println("Unos naziva boje i stanja LED diode -crvena/zelena/plava 1/0-");
   Serial.println("(crvena 1 - pali crvenu LED, crvena 0 - gasi crvenu LED)");
@@ -18,19 +28,24 @@ void setup()
 
 void loop()
 {
-  String unos;
+
 
   while(Serial.available()){
 
-    unos=Serial.readString();
-    //Serial.println(unos);
+    //digitalWrite(13, HIGH);
+    //Serial.println("testis 2");
 
-    if (unos=="Crvena 1" || unos=="crvena 1" || unos=="CRVENA 1"){
+    unos=Serial.readString();
+    Serial.println(unos);
+
+    if (unos==stringovi[0] || unos==stringovi[2] || unos==stringovi[4]){
         digitalWrite(Crvena, HIGH);
+        digitalWrite(internalLED, HIGH);
         Serial.println("Crvena LED upaljena");
     }
-    else if(unos=="Crvena 0" || unos=="crvena 0" || unos=="CRVENA 0"){
+    else if(unos==stringovi[1] || unos==stringovi[3] || unos==stringovi[5]){
         digitalWrite(Crvena, LOW);
+        digitalWrite(internalLED, LOW);
         Serial.println("Crvena LED ugasena");
     }   
 
