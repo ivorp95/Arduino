@@ -1,7 +1,7 @@
 
-int Crvena = 7;
-int Zelena = 6;
-int Plava = 5;
+int Crvena = 16
+int Zelena = 18;
+int Plava = 17;
 
 
 void setup()
