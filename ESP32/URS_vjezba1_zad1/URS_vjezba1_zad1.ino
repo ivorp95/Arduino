@@ -1,7 +1,7 @@
 
-int Crvena = 16;
-int Zelena = 18;
-int Plava = 17;
+int Crvena = 18;
+int Zelena = 19;
+int Plava = 5;
 
 int internalLED=13;
 

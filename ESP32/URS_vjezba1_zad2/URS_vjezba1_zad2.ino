@@ -1,7 +1,7 @@
 
-int Crvena = 13;
-int Zelena = 18;
-int Plava = 17;
+int Crvena = 18;
+int Zelena = 19;
+int Plava = 5;
 
 int trajanje = 200; //trajanje tockice 200ms, crtica je 3xtockica 
 
@@ -50,7 +50,7 @@ void loop(){
             Serial.println(unos);
             ispis_morse_kod(morse_brojevi[unos-'0']);
     }
-              else (unos >= ' '){
+              else if (unos >= ' '){
                 delay(trajanje*7);
     }
 
