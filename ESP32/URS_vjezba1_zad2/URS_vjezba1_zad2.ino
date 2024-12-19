@@ -48,9 +48,9 @@ void loop(){
     }
           else if (unos >= '0' && unos <= '9'){
             Serial.println(unos);
-            ispis_morse_kod(morse_slova[unos-'0']);
+            ispis_morse_kod(morse_brojevi[unos-'0']);
     }
-              else if (unos >= ' '){
+              else (unos >= ' '){
                 delay(trajanje*7);
     }
 
