@@ -26,7 +26,7 @@ void setup(){
   pinMode(Zelena, OUTPUT);
   pinMode(Plava, OUTPUT);
 
-  Serial.println("Za uneseni string na Serial konzolu, ispisuje morsov kod na LED diodi");
+  Serial.println(" Za uneseni string na Serial konzolu, ispisuje morsov kod na LED diodi");
 }
 
 
