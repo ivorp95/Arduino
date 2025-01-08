@@ -1,104 +1,86 @@
+// Pinovi za povezivanje
+const int sensorPin = 32;       // Pin za fotootpornik (LDR)
+const int ledPin = 5;           // Pin za LED
+const int potPin = 33;          // Pin za potenciometar
+const int touchPin = 2;         // Pin za touch senzor
 
+// Varijable za mjerenje
+int sensorValue = 0;            // Vrijednost očitana sa fotootpornika
+int luxValue = 0;               // Vrijednost u lux-ima
+int ledBrightness = 0;          // Intenzitet LED-a
+int potValue = 0;               // Vrijednost s potenciometra
 
-
-const int ldrPin = A0;           // LDR analogni pin
-const int potPin = A1;           // Potenciometar analogni pin
-const int ledPin = 9;            // LED PWM pin
-const int touchPin = 2;          // Touch senzor digitalni pin
-
-// Varijable za režime rada
-enum Mode {AUTO, MANUAL, OFF};
-Mode currentMode = AUTO;
-
-// Kalibracijski parametri
-const float referenceVoltage = 5.0; 
-const int analogMax = 1023; 
-
-const int ledMinBrightness = 50;
-
-// Touch senzor stanje
-bool touchState = false;
+// Definicija režima rada
+enum Mode {AUTO, MANUAL, OFF};  // Režimi rada
+Mode currentMode = AUTO;        // Početni režim je AUTO
 
 void setup() {
-  Serial.begin(9600);
-  pinMode(ledPin, OUTPUT);
-  pinMode(touchPin, INPUT_PULLUP);
+  pinMode(ledPin, OUTPUT);      // LED pin je izlaz
+  pinMode(touchPin, INPUT);     // Touch pin je ulaz
+  pinMode(potPin, INPUT);       // Potenciometar pin je ulaz
+  Serial.begin(9600);           // Pokrećemo serijsku komunikaciju
 }
 
 void loop() {
-  if (digitalRead(touchPin) == LOW) {
-    touchState = !touchState;  // Promjena stanja na dodir
+  if (digitalRead(touchPin) == HIGH) {
+    currentMode = static_cast<Mode>((currentMode + 1) % 3);  // Prebacivanje režima: AUTO -> MANUAL -> OFF
     delay(500);  // Debouncing
   }
-  
-  // Odabir načina rada
-  if (touchState) {
-    switchMode();
-  }
-  
-  // Izvršavanje trenutnog načina rada
+
+  // Režim rada ovisi o trenutnom odabiru
   switch (currentMode) {
     case AUTO:
-      autoMode();
+      autoMode();  // Automatski upravlja LED prema svjetlu u prostoriji
       break;
+      
     case MANUAL:
-      manualMode();
+      manualMode();  // Ručna kontrola intenziteta LED-a pomoću potenciometra
       break;
+      
     case OFF:
-      offMode();
+      offMode();  // LED je ugašen
       break;
   }
-  
-  delay(200); // Kratka pauza između iteracija
+
+  delay(100);  // Kratko kašnjenje za stabilizaciju
 }
 
-// Funkcija za promjenu režima rada
-void switchMode() {
-  static int modeIndex = 0;
-  modeIndex = (modeIndex + 1) % 3; // 0: AUTO, 1: MANUAL, 2: OFF
-  
-  if (modeIndex == 0) currentMode = AUTO;
-  else if (modeIndex == 1) currentMode = MANUAL;
-  else if (modeIndex == 2) currentMode = OFF;
-  
-  Serial.print("Trenutni način rada: ");
-  if (currentMode == AUTO) Serial.println("AUTO");
-  if (currentMode == MANUAL) Serial.println("MANUAL");
-  if (currentMode == OFF) Serial.println("OFF");
-}
-
-// AUTO način rada: LED se prilagođava intenzitetu svjetla
+// Funkcija za automatski režim
 void autoMode() {
-  int analogValue = analogRead(ldrPin);
-  float voltage = (analogValue / float(analogMax)) * referenceVoltage;
-  float lux = 500.0 / (referenceVoltage - voltage) - 50.0;  // Kalibracija potrebna
+  // Očitavamo vrijednost s fotootpornika
+  sensorValue = analogRead(sensorPin);
   
-  // Obrnuto proporcionalna kontrola svjetline
-  int brightness = map(analogValue, 0, analogMax, 255, ledMinBrightness);
-  analogWrite(ledPin, brightness);
-  
-  Serial.print("AUTO -> Analog: ");
-  Serial.print(analogValue);
-  Serial.print(" | Lux: ");
-  Serial.print(lux);
-  Serial.print(" | LED svjetlina: ");
-  Serial.println(brightness);
+  // Mapiramo očitane vrijednosti u lux (prema kalibraciji)
+  luxValue = map(sensorValue, 0, 1023, 0, 1000);  // Ovdje prilagodite prema stvarnim vrijednostima
+
+  // Obrnuto proporcionalna veza za jačinu LED-a: manji lux => jača LED
+  ledBrightness = map(luxValue, 0, 1000, 255, 0);  // 0 = LED maksimalno svijetli, 255 = LED isključen
+  analogWrite(ledPin, ledBrightness);  // Postavljanje intenziteta LED-a
+  Serial.print("Auto");
+  // Ispisivanje vrijednosti lux
+  Serial.print("Lux: ");
+  Serial.println(luxValue);
 }
 
-// MANUAL način rada: LED intenzitet se kontrolira potenciometrom
+// Funkcija za manualni režim
 void manualMode() {
-  int potValue = analogRead(potPin);
-  int brightness = map(potValue, 0, analogMax, ledMinBrightness, 255);
-  analogWrite(ledPin, brightness);
+  // Očitavamo vrijednost s potenciometra
+  potValue = analogRead(potPin);
   
-  Serial.print("MANUAL -> Potenciometar: ");
-  Serial.print(potValue);
-  Serial.print(" | LED svjetlina: ");
-  Serial.println(brightness);
+  // Mapiramo potenciometar na vrijednost između 0 i 255 za LED
+  ledBrightness = map(potValue, 0, 1023, 0, 255);  // Postavljanje intenziteta prema potenciometru
+  analogWrite(ledPin, ledBrightness);  // Postavljanje intenziteta LED-a
+  Serial.print("Manual");
+  // Ispisivanje vrijednosti s potenciometra
+  Serial.print("Potenciometar: ");
+  Serial.println(potValue);
 }
 
-// OFF način rada: LED je ugašen
+// Funkcija za off režim
 void offMode() {
-  analogWrite(ledPin, 0); // LED je ugašena
-  Serial.println("OFF -> LED je ugašena.");
+  // LED je ugašen
+  analogWrite(ledPin, 0);  // LED je isključen
+  Serial.print("Off");
+  // Ispisivanje poruke o gašenju LED-a
+  Serial.println("LED je ugašen.");
 }
