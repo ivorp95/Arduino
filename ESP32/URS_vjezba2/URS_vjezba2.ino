@@ -14,7 +14,6 @@ Mode currentMode = AUTO;
 const float referenceVoltage = 5.0; 
 const int analogMax = 1023; 
 
-// Minimalna svjetlina LED-a
 const int ledMinBrightness = 50;
 
 // Touch senzor stanje
@@ -23,11 +22,11 @@ bool touchState = false;
 void setup() {
   Serial.begin(9600);
   pinMode(ledPin, OUTPUT);
-  pinMode(touchPin, INPUT);
+  pinMode(touchPin, INPUT_PULLUP);
 }
 
 void loop() {
-  if (digitalRead(touchPin) == HIGH) {
+  if (digitalRead(touchPin) == LOW) {
     touchState = !touchState;  // Promjena stanja na dodir
     delay(500);  // Debouncing
   }
