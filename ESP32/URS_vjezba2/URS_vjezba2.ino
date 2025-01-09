@@ -1,3 +1,5 @@
+
+
 // Pinovi za povezivanje
 const int sensorPin = 32;       // Pin za fotootpornik (LDR)
 const int ledPin = 5;           // Pin za LED
