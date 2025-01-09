@@ -28,6 +28,8 @@ void setup() {
 void loop() {
   vrDodira=touchRead(touchPin);
   dodir=vrDodira<pragDodira;
+  Serial.println(dodir);
+  Serial.println(vrDodira);
 
   if (dodir) {
     currentMode = static_cast<Mode>((currentMode + 1) % 3);
