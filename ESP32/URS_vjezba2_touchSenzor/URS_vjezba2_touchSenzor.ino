@@ -4,8 +4,9 @@ const int sensorPin = 32;       // Pin za fotootpornik (LDR)
 const int ledPin = 5;
 const int potPin = 33;
 
-const int touchPin = T0; //GPIO4      touch sensor spojiti na gpio4   
+const int touchPin = T0; //GPIO4      touch sensor spojiti na gpio4
 bool dodir = false;
+bool zadnjeStanjeDodira=false;
 int vrDodira=0;
 const int pragDodira=30;
 
@@ -26,8 +27,11 @@ void setup() {
 }
 
 void loop() {
+
   vrDodira=touchRead(touchPin);
   dodir=vrDodira<pragDodira;
+  if (dodir==true && zadnjeStanjeDodira==false){
+
   Serial.println(dodir);
   Serial.println(vrDodira);
 
@@ -51,13 +55,16 @@ void loop() {
   }
 
   delay(100);
+  
+  zadnjeStanjeDodira=dodir;
+  }
 }
 
 
 void autoMode() {
   sensorValue = analogRead(sensorPin);
   
-  luxValue = map(sensorValue, 0, 1023, 0, 1000);
+  luxValue = map(sensorValue, 0, 4095, 0, 1000);
 
   ledBrightness = map(luxValue, 0, 1000, 255, 0);  
   analogWrite(ledPin, ledBrightness);
@@ -69,7 +76,7 @@ void autoMode() {
 void manualMode() {
   potValue = analogRead(potPin);
   
-  ledBrightness = map(potValue, 0, 1023, 0, 255);
+  ledBrightness = map(potValue, 0, 4095, 0, 255);
   analogWrite(ledPin, ledBrightness);
   Serial.print("Manual");
   Serial.print("Potenciometar: ");
