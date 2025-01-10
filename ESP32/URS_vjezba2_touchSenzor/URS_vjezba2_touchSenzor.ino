@@ -30,14 +30,12 @@ void loop() {
 
   vrDodira=touchRead(touchPin);
   dodir=vrDodira<pragDodira;
-  if (dodir==true && zadnjeStanjeDodira==false){
 
+  if (dodir==true && zadnjeStanjeDodira==false){
   Serial.println(dodir);
   Serial.println(vrDodira);
-
-  if (dodir) {
-    currentMode = static_cast<Mode>((currentMode + 1) % 3);
-    delay(500);
+  currentMode = static_cast<Mode>((currentMode + 1) % 3);
+  delay(500);
   }
 
   switch (currentMode) {
@@ -57,7 +55,6 @@ void loop() {
   delay(100);
   
   zadnjeStanjeDodira=dodir;
-  }
 }
 
 
