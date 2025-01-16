@@ -1,25 +1,16 @@
-#include "TCA9548A.h"
+#include <mojHeader.h>
 
-#ifdef SOFTWAREWIRE
-  #include <SoftwareWIRE.h>
-  SoftwareWire myWIRE(3, 2);
-  TCA9548A<SoftwareWire> TCA;
-  #define WIRE myWIRE
-#else   
-  #include <Wire.h>
-  TCA9548A<TwoWire> TCA;
-  #define WIRE Wire
-#endif
 
-#define SERIAL Serial
+SHT35 sensor(SCLPIN);
+
 
 void setup(){
+
   SERIAL.begin(115200);
   while(!SERIAL){};
 
   //WIRE.begin();
   TCA.begin(WIRE);
-
   TCA.openChannel(TCA_CHANNEL_0);   //TCA.closeChannel(TCA_CHANNEL_0);
   TCA.openChannel(TCA_CHANNEL_1); //TCA.closeChannel(TCA_CHANNEL_1);
   TCA.openChannel(TCA_CHANNEL_2); //TCA.closeChannel(TCA_CHANNEL_2);
@@ -29,18 +20,73 @@ void setup(){
   TCA.openChannel(TCA_CHANNEL_6); //TCA.closeChannel(TCA_CHANNEL_6);
   TCA.openChannel(TCA_CHANNEL_7); //TCA.closeChannel(TCA_CHANNEL_7); 
 
+  if(sensor.init()){
+    SERIAL.println("sensor init failed!!!");
+  }
+
+
   scanI2Cbus(); //funkcija koja pronadje adrese, izvrsiti samo jednom
 
 }
 
 void loop(){
 
+mjerenjeTempVlag();
+
+
+
 }
 
 
 
 
 
+
+
+
+
+
+
+void mjerenjeTempVlag(){
+
+    u16 value=0;
+    u8 data[6]={0};
+    float temp,hum;
+    if(NO_ERROR!=sensor.read_meas_data_single_shot(HIGH_REP_WITH_STRCH,&temp,&hum))
+    {
+      SERIAL.println("read temp failed!!");
+      SERIAL.println("   ");
+      SERIAL.println("   ");
+      SERIAL.println("   ");
+    }
+    else
+    {
+      SERIAL.println("result======>");
+      SERIAL.print("temperature =");
+      SERIAL.println(temp);
+
+      SERIAL.print("humidity =");
+      SERIAL.println(hum);
+
+      SERIAL.println("   ");
+      SERIAL.println("   ");
+      SERIAL.println("   ");
+    }
+    delay(1000);
+
+}
+
+
+
+
+
+
+
+
+
+void mjerenjeTlaka(){
+
+}
 
 
 
