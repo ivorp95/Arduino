@@ -3,13 +3,13 @@
 
 SHT35 sensor(SCLPIN);
 
-
 void setup(){
 
   SERIAL.begin(115200);
-  while(!SERIAL){};
 
-  //WIRE.begin();
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+
+  while(!SERIAL){};
   TCA.begin(WIRE);
   TCA.openChannel(TCA_CHANNEL_0);   //TCA.closeChannel(TCA_CHANNEL_0);
   TCA.openChannel(TCA_CHANNEL_1); //TCA.closeChannel(TCA_CHANNEL_1);
@@ -45,6 +45,13 @@ mjerenjeTempVlag();
 
 
 
+void TCA9548A(uint8_t bus){
+  Wire.beginTransmission(0x70);  // TCA9548A address is 0x70
+  Wire.write(1 << bus);          // send byte to select bus
+  Wire.endTransmission();
+  Serial.print(bus);
+}
+
 
 
 void mjerenjeTempVlag(){
@@ -61,7 +68,6 @@ void mjerenjeTempVlag(){
     }
     else
     {
-      SERIAL.println("result======>");
       SERIAL.print("temperature =");
       SERIAL.println(temp);
 
@@ -75,7 +81,6 @@ void mjerenjeTempVlag(){
     delay(1000);
 
 }
-
 
 
 
