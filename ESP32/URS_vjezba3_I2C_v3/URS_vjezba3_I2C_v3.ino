@@ -1,20 +1,12 @@
 #include <mojHeader.h>
 
-
 uint32_t start;
 uint32_t stop;
-
-float temperatura=0;
-float vlagaZraka=0;
-float tlakZraka=0;
-
 
 Adafruit_SHT31 sht;
 Adafruit_DPS310 dps;
 
-
-void setup(){
-
+void setup() {
   Serial.begin(115200);
   Wire.begin();
 
@@ -27,123 +19,75 @@ void setup(){
   delay(100);
 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;);  // Zaustavi program ako ekran nije inicijaliziran
+  }
+  
+  delay(100);
+  scanI2Cbus();  // Funkcija koja pronadje adrese, izvrsiti samo jednom
   delay(100);
 
-  scanI2Cbus(); //funkcija koja pronadje adrese, izvrsiti samo jednom
-  delay(200);
-
   ispisOLED();
-
 }
 
-void loop(){
-
+void loop() {
   delay(500);
-
   TCA9548A(1);
   delay(500);
-  temperatura=mjerenjeTemp();
-  delay(500);
-  vlagaZraka=mjerenjeVlag();
-  delay(400);
+  mjerenjeTempVlag();
 
-
+  delay(4000);
   TCA9548A(0);
-  delay(200);
-  tlakZraka=mjerenjeTlaka();
-  delay(300);
-
-  //delay(200);
-  TCA9548A(2);
-  ispisOLEDtlak(tlakZraka);
-  //ispisOLEDtemp(temperatura);
-  //ispisOLEDhum(vlagaZraka);
-
-
-
+  delay(8000);
+  mjerenjeTlaka();
+  delay(3000);
 }
 
-
-
-
-
-
-
-
-
-void TCA9548A(uint8_t bus){
+void TCA9548A(uint8_t bus) {
   delay(100);
   Wire.beginTransmission(0x70);  // TCA9548A address is 0x70
   Wire.write(1 << bus);          // send byte to select bus
   Wire.endTransmission();
-  //Serial.println(bus);
   delay(200);
 }
 
-
-
-float mjerenjeTemp(){
-
+void mjerenjeTempVlag() {
   delay(200);
   
   float temp = sht.readTemperature();
+  float hum = sht.readHumidity();
+
   Serial.print("Temp *C = "); 
   Serial.print(temp); 
   Serial.print("	");
-  delay(300);
-
-  return temp;
-
-}
-
-
-
-
-
-float mjerenjeVlag(){
-
-  delay(200);
-
-  float hum = sht.readHumidity();
-
   Serial.print("Hum. % = "); 
   Serial.println(hum);
 
-  delay(300);
-
-  return hum;
-
+  ispisOLEDtemp(temp);
+  delay(1000);  // Skraćeno vrijeme za brže ažuriranje
+  ispisOLEDhum(hum);
+  delay(1000);  // Skraćeno vrijeme za brže ažuriranje
 }
 
-
-
-
-float mjerenjeTlaka(){
-
-  delay(300);
+void mjerenjeTlaka() {
+  delay(2000);
   TCA9548A(0);
+  delay(2000);
+  
   sensors_event_t temp_event, pressure_event;
-  delay(100);
-  dps.getEvents( &temp_event, &pressure_event); 
+  delay(4000);
+  dps.getEvents(&temp_event, &pressure_event); 
   Serial.print(F("Pressure = ")); 
   Serial.print(pressure_event.pressure); 
   Serial.println(" hPa");
-  Serial.println();
 
-  delay(200);
-
-  return pressure_event.pressure;
-
+  ispisOLEDtlak(pressure_event.pressure);
+  delay(2000);
 }
 
-
-
-
-void ispisOLED(){
-
-  delay(800);
+void ispisOLED() {
   TCA9548A(2);
-
   display.clearDisplay();
   display.setTextColor(WHITE);
   display.setTextSize(2);
@@ -156,21 +100,16 @@ void ispisOLED(){
   display.setTextSize(2);
   display.println("SBC-OLED01");
   display.display();
-  delay(2000);
+  delay(5000);  // Manja pauza
   display.clearDisplay();
   display.invertDisplay(true);
-  delay(2000);
+  delay(5000);  // Manja pauza
   display.invertDisplay(false);
   delay(1000);
-
 }
 
-
-void ispisOLEDtemp(float temp){
-
-  delay(500);
-  //TCA9548A(2);
-
+void ispisOLEDtemp(float temp) {
+  TCA9548A(2);  // Aktiviraj kanal za OLED
   display.clearDisplay();
   display.setTextColor(WHITE);
   display.setTextSize(2);
@@ -184,17 +123,12 @@ void ispisOLEDtemp(float temp){
   display.setCursor(2, 40);
   display.setTextSize(2);
   display.println("TEMPERATRA");
-  display.display();
-  delay(4000);
-
+  display.display(); // Ažuriraj ekran
+  delay(2000);  // Manja pauza
 }
 
-
-
-
-void ispisOLEDhum(float hum){
-  delay(500);
-  //TCA9548A(2);
+void ispisOLEDhum(float hum) {
+  TCA9548A(2);  // Aktiviraj kanal za OLED
   display.clearDisplay();
   display.setTextColor(WHITE);
   display.setTextSize(2);
@@ -208,17 +142,12 @@ void ispisOLEDhum(float hum){
   display.setCursor(0, 40);
   display.setTextSize(2);
   display.println("VLAGA.ZRAKA");
-  display.display();
-  delay(4000);
-
+  display.display(); // Ažuriraj ekran
+  delay(2000);  // Manja pauza
 }
 
-
-
-
-void ispisOLEDtlak(float tlak){
-  delay(500);
-  //TCA9548A(2);
+void ispisOLEDtlak(float tlak) {
+  TCA9548A(2);  // Aktiviraj kanal za OLED
   display.clearDisplay();
   display.setTextColor(WHITE);
   display.setTextSize(2);
@@ -231,44 +160,32 @@ void ispisOLEDtlak(float tlak){
   display.setCursor(2, 40);
   display.setTextSize(2);
   display.println("TLAK.ZRAKA");
-  display.display();
-  delay(4000);
-
+  display.display(); // Ažuriraj ekran
+  delay(2000);  // Manja pauza
 }
 
-
-
-
-void scanI2Cbus(){
-
+void scanI2Cbus() {
   uint8_t error, i2cAddress, devCount, unCount;
-
   Serial.println("Scanning...");
   devCount = 0;
   unCount = 0;
-  for(i2cAddress = 1; i2cAddress < 127; i2cAddress++ )
-  {
+  for(i2cAddress = 1; i2cAddress < 127; i2cAddress++) {
     Wire.beginTransmission(i2cAddress);
     error = Wire.endTransmission();
-
-    if (error == 0)
-    {
+    if (error == 0) {
       Serial.print("I2C device found at 0x");
-      if (i2cAddress<16) Serial.print("0");
-      Serial.println(i2cAddress,HEX);
+      if (i2cAddress < 16) Serial.print("0");
+      Serial.println(i2cAddress, HEX);
       devCount++;
-    }
-    else if (error==4)
-    {
-      Serial.print("Unknow error at 0x");
-      if (i2cAddress<16) Serial.print("0");
-      Serial.println(i2cAddress,HEX);
+    } else if (error == 4) {
+      Serial.print("Unknown error at 0x");
+      if (i2cAddress < 16) Serial.print("0");
+      Serial.println(i2cAddress, HEX);
       unCount++;
-    }    
+    }
   }
-
   if (devCount + unCount == 0)
-    Serial.println("No I2C devices found\n");
+    Serial.println("No I2C devices found");
   else {
     Serial.print(devCount);
     Serial.print(" device(s) found");
@@ -279,6 +196,5 @@ void scanI2Cbus(){
     }
     Serial.println();
   }
-  Serial.println();
   delay(1000); 
 }
