@@ -18,20 +18,26 @@ void setup(){
   Wire.begin();
 
   sht.begin(0x45);
-
+  delay(100);
   dps.begin_I2C(0x77);
   dps.configurePressure(DPS310_64HZ, DPS310_64SAMPLES);
   dps.configureTemperature(DPS310_64HZ, DPS310_64SAMPLES);
-
+  delay(100);
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-
+  delay(100);
   scanI2Cbus(); //funkcija koja pronadje adrese, izvrsiti samo jednom
-
+  delay(100);
   ispisOLED();
 
 }
 
 void loop(){
+
+  delay(1000);
+  TCA9548A(0);
+  delay(400);
+  mjerenjeTlaka();
+  delay(100);
 
 
   delay(500);
@@ -41,8 +47,9 @@ void loop(){
 
   delay(500);
   TCA9548A(0);
-  delay(500);
+  delay(400);
   mjerenjeTlaka();
+  delay(100);
 
 
 
@@ -139,8 +146,9 @@ void ispisOLEDtemp(float temp){
   display.setTextColor(WHITE);
   display.setTextSize(2);
   display.setCursor(2, 10);
-  display.print("Temp *C "); 
+  display.print("T= "); 
   display.print(temp); 
+  display.print("*C");
   display.setTextSize(1);
   display.setCursor(2, 28);
   display.println("Veleri.Telematika");
@@ -161,14 +169,38 @@ void ispisOLEDhum(float hum){
   display.setTextColor(WHITE);
   display.setTextSize(2);
   display.setCursor(2, 10);
-  display.print("Hum % "); 
-  display.print(hum); 
+  display.print("H= "); 
+  display.print(hum);
+  display.print("%"); 
+  display.setTextSize(1);
+  display.setCursor(2, 28);
+  display.println("Veleri.Telematika");
+  display.setCursor(0, 40);
+  display.setTextSize(2);
+  display.println("VLAGA.ZRAKA");
+  display.display();
+  delay(2000);
+
+}
+
+
+
+
+void ispisOLEDtlak(float tlak){
+
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+  display.setTextSize(2);
+  display.setCursor(2, 10);
+  display.print("P= "); 
+  display.print(tlak); 
+  display.print("hPa"); 
   display.setTextSize(1);
   display.setCursor(2, 28);
   display.println("Veleri.Telematika");
   display.setCursor(2, 40);
   display.setTextSize(2);
-  display.println("VLAGA.ZRAKA");
+  display.println("TLAK.ZRAKA");
   display.display();
   delay(2000);
 
