@@ -1,28 +1,48 @@
-
 #include <mojHeader.h>
 
+
+
+
+uint32_t start;
+uint32_t stop;
+
+
+Adafruit_SHT31 sht;
+
+Adafruit_DPS310 dps;
 
 
 void setup(){
 
   Serial.begin(115200);
   Wire.begin();
+
   sht.begin(0x45);
 
-  Wire.setClock(100000);
-  uint16_t stat = sht.readStatus();
-  Serial.print(stat, HEX);
-  
+  dps.begin_I2C(0x77);
+  dps.configurePressure(DPS310_64HZ, DPS310_64SAMPLES);
+  dps.configureTemperature(DPS310_64HZ, DPS310_64SAMPLES);
 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
 
   scanI2Cbus(); //funkcija koja pronadje adrese, izvrsiti samo jednom
 
+  ispisOLED();
+
 }
 
 void loop(){
 
-mjerenjeTempVlag();
+
+  delay(500);
+  TCA9548A(1);
+  delay(500);
+  mjerenjeTempVlag();
+
+  delay(500);
+  TCA9548A(0);
+  delay(500);
+  mjerenjeTlaka();
 
 
 
@@ -40,43 +60,124 @@ void TCA9548A(uint8_t bus){
   Wire.beginTransmission(0x70);  // TCA9548A address is 0x70
   Wire.write(1 << bus);          // send byte to select bus
   Wire.endTransmission();
-  Serial.print(bus);
+  //Serial.print(bus);
+  delay(200);
 }
 
 
 
 void mjerenjeTempVlag(){
-  sht.read();
+  
+  float temp = sht.readTemperature();
+  float hum = sht.readHumidity();
 
-  Serial.print("Temperature:");
-  Serial.println(sht.getTemperature(), 1);
-  Serial.print("\t");
-  Serial.print("Humidity:");
-  Serial.println(sht.getHumidity(), 1);
-  delay(50);
+  Serial.print("Temp *C = "); 
+  Serial.print(temp); 
+  Serial.print("	");
+  Serial.print("Hum. % = "); 
+  Serial.println(hum);
+
+  delay(1000);
+  TCA9548A(2);
+  delay(1000);
+  ispisOLEDtemp(temp);
+  delay(2000);
+  ispisOLEDhum(hum);
+  delay(2000);
 
 
 }
-
-
-
-
 
 
 
 
 void mjerenjeTlaka(){
 
+  sensors_event_t temp_event, pressure_event;
+  delay(1000);
+  dps.getEvents(&temp_event, &pressure_event); 
+  //Serial.print(F("Temperature = ")); 
+  //Serial.print(temp_event.temperature); 
+  //Serial.println(" *C");
+  Serial.print(F("Pressure = ")); 
+  Serial.print(pressure_event.pressure); 
+  Serial.println(" hPa");
+  Serial.println();
+
 }
 
 
-void openChannel(){
+
+
+void ispisOLED(){
+
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+  display.setTextSize(2);
+  display.setCursor(40, 10);
+  display.print("OLED");
+  display.setTextSize(1);
+  display.setCursor(23, 28);
+  display.println("www.joy-it.net");
+  display.setCursor(8, 40);
+  display.setTextSize(2);
+  display.println("SBC-OLED01");
+  display.display();
+  delay(8000);
+  display.clearDisplay();
+  display.invertDisplay(true);
+  delay(8000);
+  display.invertDisplay(false);
+  delay(1000);
 
 }
+
+
+void ispisOLEDtemp(float temp){
+
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+  display.setTextSize(2);
+  display.setCursor(5, 10);
+  display.print("Temp *C= "); 
+  display.print(temp); 
+  display.setTextSize(1);
+  display.setCursor(1, 28);
+  display.println("Veleri - Telematika");
+  display.setCursor(1, 30);
+  display.setTextSize(2);
+  display.println("TEMPERATRA");
+  display.display();
+  delay(2000);
+
+}
+
+
+
+
+void ispisOLEDhum(float hum){
+
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+  display.setTextSize(2);
+  display.setCursor(5, 10);
+  display.print("Hum % = "); 
+  display.print(hum); 
+  display.setTextSize(1);
+  display.setCursor(1, 28);
+  display.println("Veleri - Telematika");
+  display.setCursor(1, 40);
+  display.setTextSize(2);
+  display.println("VLAGA ZRAKA");
+  display.display();
+  delay(2000);
+
+}
+
+
 
 
 void scanI2Cbus(){
-
 
   uint8_t error, i2cAddress, devCount, unCount;
 

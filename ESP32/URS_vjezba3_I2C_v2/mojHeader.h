@@ -1,12 +1,13 @@
+#include <Adafruit_SHT31.h>
+
 #include <Adafruit_BusIO_Register.h>
 #include <Adafruit_GenericDevice.h>
 #include <Adafruit_I2CDevice.h>
 #include <Adafruit_I2CRegister.h>
 #include <Adafruit_SPIDevice.h>
-
+#include <Adafruit_DPS310.h>
 #include <Adafruit_SSD1306.h>
 #include <splash.h>
-
 #include <Adafruit_GFX.h>
 #include <Adafruit_GrayOLED.h>
 #include <Adafruit_SPITFT.h>
@@ -14,7 +15,6 @@
 #include <gfxfont.h>
 
 #include <Wire.h>
-#include <SHT31.h>
 
 
 #define OLED_RESET 4
@@ -23,9 +23,4 @@
 
 Adafruit_SSD1306 display(OLED_WIDTH, OLED_HEIGHT, &Wire, OLED_RESET);
 
-
-uint32_t start;
-uint32_t stop;
-
-SHT31 sht;
 
