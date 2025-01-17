@@ -19,25 +19,24 @@ void setup(){
 
   sht.begin(0x45);
   delay(100);
+
   dps.begin_I2C(0x77);
   dps.configurePressure(DPS310_64HZ, DPS310_64SAMPLES);
   dps.configureTemperature(DPS310_64HZ, DPS310_64SAMPLES);
   delay(100);
+
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   delay(100);
+
   scanI2Cbus(); //funkcija koja pronadje adrese, izvrsiti samo jednom
   delay(100);
+
   ispisOLED();
 
 }
 
 void loop(){
 
-  delay(1000);
-  TCA9548A(0);
-  delay(400);
-  mjerenjeTlaka();
-  delay(100);
 
 
   delay(500);
@@ -45,11 +44,13 @@ void loop(){
   delay(500);
   mjerenjeTempVlag();
 
-  delay(500);
+
+  delay(4000);
   TCA9548A(0);
-  delay(400);
+  delay(8000);
   mjerenjeTlaka();
-  delay(100);
+  delay(3000);
+
 
 
 
@@ -64,16 +65,19 @@ void loop(){
 
 
 void TCA9548A(uint8_t bus){
+  delay(100);
   Wire.beginTransmission(0x70);  // TCA9548A address is 0x70
   Wire.write(1 << bus);          // send byte to select bus
   Wire.endTransmission();
-  //Serial.print(bus);
+  //Serial.println(bus);
   delay(200);
 }
 
 
 
 void mjerenjeTempVlag(){
+
+  delay(200);
   
   float temp = sht.readTemperature();
   float hum = sht.readHumidity();
@@ -84,14 +88,12 @@ void mjerenjeTempVlag(){
   Serial.print("Hum. % = "); 
   Serial.println(hum);
 
-  delay(1000);
-  TCA9548A(2);
-  delay(1000);
-  ispisOLEDtemp(temp);
-  delay(2000);
-  ispisOLEDhum(hum);
-  delay(2000);
 
+  delay(4000);
+  ispisOLEDtemp(temp);
+  delay(3000);
+  ispisOLEDhum(hum);
+  delay(7000);
 
 }
 
@@ -100,8 +102,11 @@ void mjerenjeTempVlag(){
 
 void mjerenjeTlaka(){
 
+  delay(2000);
+  TCA9548A(0);
+  delay(2000);
   sensors_event_t temp_event, pressure_event;
-  delay(1000);
+  delay(4000);
   dps.getEvents(&temp_event, &pressure_event); 
   //Serial.print(F("Temperature = ")); 
   //Serial.print(temp_event.temperature); 
@@ -111,12 +116,19 @@ void mjerenjeTlaka(){
   Serial.println(" hPa");
   Serial.println();
 
+  delay(200);
+  ispisOLEDtlak(pressure_event.pressure);
+  delay(2000);
+
 }
 
 
 
 
 void ispisOLED(){
+
+  delay(800);
+  TCA9548A(2);
 
   display.clearDisplay();
   display.setTextColor(WHITE);
@@ -142,6 +154,9 @@ void ispisOLED(){
 
 void ispisOLEDtemp(float temp){
 
+  delay(500);
+  TCA9548A(2);
+
   display.clearDisplay();
   display.setTextColor(WHITE);
   display.setTextSize(2);
@@ -156,7 +171,7 @@ void ispisOLEDtemp(float temp){
   display.setTextSize(2);
   display.println("TEMPERATRA");
   display.display();
-  delay(2000);
+  delay(4000);
 
 }
 
@@ -164,7 +179,8 @@ void ispisOLEDtemp(float temp){
 
 
 void ispisOLEDhum(float hum){
-
+  delay(500);
+  TCA9548A(2);
   display.clearDisplay();
   display.setTextColor(WHITE);
   display.setTextSize(2);
@@ -179,7 +195,7 @@ void ispisOLEDhum(float hum){
   display.setTextSize(2);
   display.println("VLAGA.ZRAKA");
   display.display();
-  delay(2000);
+  delay(4000);
 
 }
 
@@ -187,12 +203,12 @@ void ispisOLEDhum(float hum){
 
 
 void ispisOLEDtlak(float tlak){
-
+  delay(500);
+  TCA9548A(2);
   display.clearDisplay();
   display.setTextColor(WHITE);
   display.setTextSize(2);
   display.setCursor(2, 10);
-  display.print("P= "); 
   display.print(tlak); 
   display.print("hPa"); 
   display.setTextSize(1);
@@ -202,7 +218,7 @@ void ispisOLEDtlak(float tlak){
   display.setTextSize(2);
   display.println("TLAK.ZRAKA");
   display.display();
-  delay(2000);
+  delay(4000);
 
 }
 
