@@ -53,7 +53,7 @@ void loop(){
   tlakZraka=mjerenjeTlaka();
   delay(300);
 
-  //delay(200);
+  delay(200);
   TCA9548A(2);
   ispisOLEDtlak(tlakZraka);
   //ispisOLEDtemp(temperatura);
@@ -246,27 +246,23 @@ void scanI2Cbus(){
   Serial.println("Scanning...");
   devCount = 0;
   unCount = 0;
-  for(i2cAddress = 1; i2cAddress < 127; i2cAddress++ )
-  {
+  for(i2cAddress = 1; i2cAddress < 127; i2cAddress++ ){
     Wire.beginTransmission(i2cAddress);
     error = Wire.endTransmission();
 
-    if (error == 0)
-    {
+    if (error == 0){
       Serial.print("I2C device found at 0x");
       if (i2cAddress<16) Serial.print("0");
       Serial.println(i2cAddress,HEX);
       devCount++;
     }
-    else if (error==4)
-    {
+    else if (error==4){
       Serial.print("Unknow error at 0x");
       if (i2cAddress<16) Serial.print("0");
       Serial.println(i2cAddress,HEX);
       unCount++;
     }    
   }
-
   if (devCount + unCount == 0)
     Serial.println("No I2C devices found\n");
   else {
