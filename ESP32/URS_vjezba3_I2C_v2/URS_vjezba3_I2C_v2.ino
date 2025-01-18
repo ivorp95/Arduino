@@ -53,9 +53,9 @@ void loop(){
   tlakZraka=mjerenjeTlaka();
   delay(300);
 
-  delay(200);
-  TCA9548A(2);
-  ispisOLEDtlak(tlakZraka);
+  //delay(200);
+  //TCA9548A(2);
+  //ispisOLEDtlak(tlakZraka);
   //ispisOLEDtemp(temperatura);
   //ispisOLEDhum(vlagaZraka);
 
