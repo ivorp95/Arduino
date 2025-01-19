@@ -102,8 +102,8 @@ void mjerenjeTlakaTemp(){
   Serial.println(" *C");
   Serial.println();
 
-  //u8g2ispisTemp(temp_event.temperature);
-  //u8g2ispisTlak(pressure_event.pressure);
+  u8g2ispisTemp(temp_event.temperature);
+  u8g2ispisTlak(pressure_event.pressure);
 
   //ispisOLEDtemp(temp_event.temperature);
   //ispisOLEDtlak(pressure_event.pressure);
