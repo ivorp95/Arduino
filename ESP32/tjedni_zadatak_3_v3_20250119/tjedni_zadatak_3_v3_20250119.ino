@@ -192,7 +192,7 @@ void u8g2ispisTlak(float tlak){
 
   delay(100);
   u8g2.clearBuffer();
-  String msg = "Tlak zraka: " + String(tlak) + " % ";
+  String msg = "Tlak zraka: " + String(tlak) + " hPa ";
   u8g2.drawStr(0, 10, msg.c_str());
   //Serial.println(msg);
   u8g2.sendBuffer();
@@ -203,7 +203,7 @@ void u8g2ispisVlag(float hum){
   TCA9548A(2);
 
   u8g2.clearBuffer();
-  String msg = "Humidity: " + String(hum) + " C ";
+  String msg = "Humidity: " + String(hum) + " % ";
   u8g2.drawStr(0, 10, msg.c_str());
   //Serial.println(msg);
   u8g2.sendBuffer();
@@ -214,7 +214,7 @@ void u8g2ProsjekTemp(float tempMin,float tempMax,float tempAvg){
   TCA9548A(2);
 
   u8g2.clearBuffer();
-  String msg = "TemMin: " + String(tempMin) + " C ";
+  String msg = "TempMin: " + String(tempMin) + " C ";
   u8g2.drawStr(0, 10, msg.c_str());
   //Serial.println(msg);
   u8g2.sendBuffer();
@@ -228,7 +228,7 @@ void u8g2ProsjekTemp(float tempMin,float tempMax,float tempAvg){
   delay(500);
 
   u8g2.clearBuffer();
-  String msg2 = "TemAvg: " + String(tempAvg) + " C ";
+  String msg2 = "TempAvg: " + String(tempAvg) + " C ";
   u8g2.drawStr(0, 10, msg2.c_str());
   //Serial.println(msg);
   u8g2.sendBuffer();
@@ -241,21 +241,21 @@ void u8g2ProsjekTlak(float pressMin, float pressMax,float pressAvg){
   TCA9548A(2);
 
   u8g2.clearBuffer();
-  String msg = "pressMin: " + String(pressMin) + " C ";
+  String msg = "pressMin: " + String(pressMin) + " hPa ";
   u8g2.drawStr(0, 10, msg.c_str());
   //Serial.println(msg);
   u8g2.sendBuffer();
   delay(500);
 
   u8g2.clearBuffer();
-  String msg1 = "pressMax: " + String(pressMax) + " C ";
+  String msg1 = "pressMax: " + String(pressMax) + " hPa ";
   u8g2.drawStr(0, 10, msg1.c_str());
   //Serial.println(msg);
   u8g2.sendBuffer();
   delay(500);
 
   u8g2.clearBuffer();
-  String msg2 = "pressAvg: " + String(pressAvg) + " C ";
+  String msg2 = "pressAvg: " + String(pressAvg) + " hPa ";
   u8g2.drawStr(0, 10, msg2.c_str());
   //Serial.println(msg);
   u8g2.sendBuffer();
@@ -269,21 +269,21 @@ void u8g2ProsjekVlag(float humMin, float humMax, float humAvg){
   TCA9548A(2);
 
   u8g2.clearBuffer();
-  String msg = "humMin: " + String(humMin) + " C ";
+  String msg = "humMin: " + String(humMin) + " % ";
   u8g2.drawStr(0, 10, msg.c_str());
   //Serial.println(msg);
   u8g2.sendBuffer();
   delay(500);
 
   u8g2.clearBuffer();
-  String msg1 = "humMax: " + String(humMax) + " C ";
+  String msg1 = "humMax: " + String(humMax) + " % ";
   u8g2.drawStr(0, 10, msg1.c_str());
   //Serial.println(msg);
   u8g2.sendBuffer();
   delay(500);
 
   u8g2.clearBuffer();
-  String msg2 = "humAvg: " + String(humAvg) + " C ";
+  String msg2 = "humAvg: " + String(humAvg) + " % ";
   u8g2.drawStr(0, 10, msg2.c_str());
   //Serial.println(msg);
   u8g2.sendBuffer();
