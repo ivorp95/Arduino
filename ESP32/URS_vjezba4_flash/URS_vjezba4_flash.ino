@@ -1,12 +1,6 @@
 #include "URSheader.h"
 
-float temp;
-float press;
-float hum;
-uint8_t oversampling = 7;
-int16_t ret;
-String msg = ""; //priprema poruke koja ce se poslati na serial i u buffer za OLED (SSD1306)
-Preferences prefs;
+
 
 
 void setup() {
@@ -72,26 +66,54 @@ void loop() {
 
   uint8_t oversampling = 7;
   int16_t ret;
-  String msg = ""; //priprema poruke koja ce se poslati na serial i u buffer za OLED (SSD1306)
-
+  String msg = ""; //priprema poruke koja ce se poslati na serial i u buffer za OLED (SSD1306
   Serial.println();
-
   u8g2.clearBuffer(); // pocisti buffer koji sadrzi ono sto ce se prikazati na OLED. Buffer je u RAM MCU-a.
 
 
 
-  mjerenjeDPS();
-  mjerenjeSHT();
+
+  vrDodira=touchRead(touchPin);
+  dodir=vrDodira<pragDodira;
+  if (dodir==true && zadnjeStanjeDodira==false){
+    displayMode = static_cast<Mode>((displayMode + 1) % 4);
 
 
-// kad imam sve poruke u bufferu - cijeli izgled ekrana u bufferu, posalji na OLED (posalji SSD1306 MCU-u)
-  select_channel_i2c(OLED_IIC_CH);//odaberi na mux-u kanal
-  u8g2.sendBuffer();//posalji na SSD1306
+    switch (displayMode){
 
-  // Wait some time
-  delay(1000);
+      case TRENUTNO:
+      do{
+        u8g2.clearBuffer(); 
+        mjerenjeDPS();
+        mjerenjeSHT();
+        select_channel_i2c(OLED_IIC_CH);//odaberi na mux-u kanal
+        u8g2.sendBuffer();//posalji na SSD1306
+        delay(1000);
+      }while((vrDodira=touchRead(touchPin))>pragDodira);
+        break;
+
+      case STATISTIKA:
+        do{
+        u8g2.clearBuffer(); 
+        prosjeci();
+        select_channel_i2c(OLED_IIC_CH);//odaberi na mux-u kanal
+        u8g2.sendBuffer();//posalji na SSD1306
+        delay(1000);
+        }while((vrDodira=touchRead(touchPin))>pragDodira);
+        break;
+
+      case IZBORNIK:
+
+        break;
+
+      case RESET:
+        resetStatistics();
+        break;
+
+    }
+  }
+
 }
-
 
 
 
@@ -103,7 +125,6 @@ void select_channel_i2c(uint8_t channel) {
 
 
 void mjerenjeDPS(){
-
 
   select_channel_i2c(DPS310_IIC_CH);
   /*
@@ -159,3 +180,81 @@ void mjerenjeSHT(){
     u8g2.drawStr(0, OLED_ROW_3, msg.c_str());
   }
 }
+
+
+void prosjeci() {
+  
+
+  select_channel_i2c(SHT35_IIC_CH);
+  sensor.read_meas_data_single_shot(HIGH_REP_WITH_STRCH, &temp, &hum);
+
+  select_channel_i2c(DPS310_IIC_CH);
+  ret = Dps3xxPressureSensor.measurePressureOnce(press, oversampling);
+
+  String msg;
+
+
+  if (!isnan(temp) && !isnan(hum) && !isnan(press)) {
+    if (temp < tempMin) tempMin = temp;
+    if (temp > tempMax) tempMax = temp;
+
+
+    tempAvg = (tempAvg * readingsCount + temp) / (readingsCount + 1);
+
+    if (hum < humMin) humMin = hum;
+    if (hum > humMax) humMax = hum;
+
+
+    humAvg = (humAvg * readingsCount + hum) / (readingsCount + 1);
+
+    if (press < pressMin) pressMin = press;
+    if (press > pressMax) pressMax = press;
+
+    
+    pressAvg = (pressAvg * readingsCount + press) / (readingsCount + 1);
+
+    readingsCount++;
+
+    Serial.print("Avg. Temp.:");
+    Serial.println(tempAvg);
+    Serial.print("Avg. humidity.:");
+    Serial.println(humAvg);
+    Serial.print("Avg. pressure.:");
+    Serial.println(pressAvg/100);
+
+
+    msg = "TempAVG: " + String(tempAvg) + " *C ";
+    u8g2.drawStr(0, OLED_ROW_0, msg.c_str());
+    msg = "HumAVG: " + String(humAvg) + " % ";
+    u8g2.drawStr(0, OLED_ROW_1, msg.c_str());
+    msg = "PressAVG: " + String(pressAvg/100) + " hPa ";
+    u8g2.drawStr(0, OLED_ROW_2, msg.c_str());
+
+  }
+}
+
+
+void resetStatistics() {
+  tempMin = 1000.0;
+  tempMax = -1000.0;
+  humMin = 100.0;
+  humMax = -100.0;
+  pressMin = 1000.0;
+  pressMax = -1000.0;
+  tempAvg = 0.0;
+  humAvg = 0.0;
+  pressAvg = 0.0;
+  readingsCount = 0;
+
+  select_channel_i2c(OLED_IIC_CH);
+
+  u8g2.clearBuffer();
+  String msg2 = "Podaci resetirani";
+  u8g2.drawStr(0, 10, msg2.c_str());
+  //Serial.println(msg);
+  u8g2.sendBuffer();
+  delay(500);
+}
+
+
+
