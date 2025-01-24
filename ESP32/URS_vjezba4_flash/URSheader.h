@@ -44,7 +44,7 @@ Preferences prefs;
 enum Mode {TRENUTNO, STATISTIKA, IZBORNIK, RESET};
 Mode displayMode = TRENUTNO;
 
-
+char unos;
 const int touchPin = T0; //GPIO4      touch sensor spojiti na gpio4
 bool dodir = false;
 bool zadnjeStanjeDodira=false;

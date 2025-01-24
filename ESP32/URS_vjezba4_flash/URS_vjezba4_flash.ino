@@ -102,9 +102,29 @@ void loop() {
         }while((vrDodira=touchRead(touchPin))>pragDodira);
         break;
 
+
       case IZBORNIK:
 
-        break;
+        Serial.println("IZBORNIK, unos slova 'a' 'b' za opcije, 'c' za izlaz ");
+          
+        do{
+
+          unos=Serial.read();
+          switch (unos) {
+
+            case 'a':
+              Serial.println("Case a, izbornik 1");
+              
+            case 'b':
+              Serial.println("Case b, test, izbornik 2");
+
+            case 'c':
+              break;
+
+
+          }
+        }while((vrDodira=touchRead(touchPin))>pragDodira);
+    
 
       case RESET:
         resetStatistics();
@@ -210,10 +230,12 @@ void prosjeci() {
     if (press < pressMin) pressMin = press;
     if (press > pressMax) pressMax = press;
 
-    
+
     pressAvg = (pressAvg * readingsCount + press) / (readingsCount + 1);
 
     readingsCount++;
+
+
 
     Serial.print("Avg. Temp.:");
     Serial.println(tempAvg);
