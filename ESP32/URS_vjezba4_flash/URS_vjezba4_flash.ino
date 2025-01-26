@@ -4,43 +4,13 @@
 
 
 void setup() {
+
   Serial.begin(115200);
 
   Alarms alarms;
   prefs.begin("Veleri-OI-meteo", false);
-  bool hasPrefs = prefs.getBool("valid", false);
+  inicijalizacijaAlarma(&alarms);
 
-  if (hasPrefs){
-    Serial.println("Saved settings found. ");
-    float tmp;
-    // Read settings into a temporary variable and store if no error.
-    // In case of missing key-value pair or other error, getFloat returns NaN
-    tmp = prefs.getFloat("humidity_low");
-    if (!isnan(tmp)) alarms.humidity_low = tmp;
-    tmp = prefs.getFloat("humidity_high");
-    if (!isnan(tmp)) alarms.humidity_high = tmp;
-    tmp = prefs.getFloat("temperature_low");
-    if (!isnan(tmp)) alarms.temperature_low = tmp;
-    tmp = prefs.getFloat("temperature_high");
-    if (!isnan(tmp)) alarms.temperature_high = tmp;
-  }
-  else{
-    Serial.println("Saved settings not found, using default values."); 
-    prefs.putFloat("humidity_low", alarms.humidity_low); 
-    prefs.putFloat("humidity_high", alarms.humidity_high); 
-    prefs.putFloat("temperature_low", alarms.temperature_low); 
-    prefs.putFloat("temperature_high", alarms.temperature_high); 
-    prefs.putBool("valid", true);
-  }
-  Serial.println("Configured alarms: ");
-  Serial.print("Min. temp.:");
-  Serial.println(alarms.temperature_low);
-  Serial.print("Max. temp.:");
-  Serial.println(alarms.temperature_high);
-  Serial.print("Min. humidity.:");
-  Serial.println(alarms.humidity_low);
-  Serial.print("Max. humidity.:");
-  Serial.println(alarms.humidity_high);
 
   select_channel_i2c(OLED_IIC_CH);
   u8g2.begin();
@@ -67,29 +37,28 @@ void loop() {
   uint8_t oversampling = 7;
   int16_t ret;
   String msg = ""; //priprema poruke koja ce se poslati na serial i u buffer za OLED (SSD1306
-  Serial.println();
-  u8g2.clearBuffer(); // pocisti buffer koji sadrzi ono sto ce se prikazati na OLED. Buffer je u RAM MCU-a.
-
-
-
+  //Serial.println();
+  //u8g2.clearBuffer(); // pocisti buffer koji sadrzi ono sto ce se prikazati na OLED. Buffer je u RAM MCU-a.
 
   vrDodira=touchRead(touchPin);
   dodir=vrDodira<pragDodira;
   if (dodir==true && zadnjeStanjeDodira==false){
+
     displayMode = static_cast<Mode>((displayMode + 1) % 4);
+    //zadnjeStanjeDodira=dodir;
 
 
     switch (displayMode){
 
       case TRENUTNO:
-      do{
+        do{
         u8g2.clearBuffer(); 
         mjerenjeDPS();
         mjerenjeSHT();
         select_channel_i2c(OLED_IIC_CH);//odaberi na mux-u kanal
         u8g2.sendBuffer();//posalji na SSD1306
-        delay(1000);
-      }while((vrDodira=touchRead(touchPin))>pragDodira);
+        delay(2000);
+        }while((vrDodira=touchRead(touchPin))>pragDodira);
         break;
 
       case STATISTIKA:
@@ -98,39 +67,43 @@ void loop() {
         prosjeci();
         select_channel_i2c(OLED_IIC_CH);//odaberi na mux-u kanal
         u8g2.sendBuffer();//posalji na SSD1306
-        delay(1000);
+        delay(2000);
         }while((vrDodira=touchRead(touchPin))>pragDodira);
         break;
 
 
       case IZBORNIK:
 
-        Serial.println("IZBORNIK, unos slova 'a' 'b' za opcije, 'c' za izlaz ");
+        Serial.println("IZBORNIK serijskim unosom znaka, unos slova 'a' 'b' za opcije, 'c' reset podataka, 'd' za izlaz ");
           
         do{
-
           unos=Serial.read();
           switch (unos) {
 
             case 'a':
               Serial.println("Case a, izbornik 1");
+              break;
               
             case 'b':
               Serial.println("Case b, test, izbornik 2");
-
-            case 'c':
               break;
 
+            case 'c':
+              Serial.println("Podaci resetirani");
+              resetStatistics();
+
+
+            case 'd':
+              goto label;
 
           }
-        }while((vrDodira=touchRead(touchPin))>pragDodira);
-    
-
-      case RESET:
-        resetStatistics();
+        }while(true);
+        label:
         break;
+      
 
     }
+
   }
 
 }
@@ -147,15 +120,7 @@ void select_channel_i2c(uint8_t channel) {
 void mjerenjeDPS(){
 
   select_channel_i2c(DPS310_IIC_CH);
-  /*
-   * lets the Dps3xx perform a Single temperature measurement with the last (or standard) configuration
-   * The result will be written to the parameter temperature
-   * ret = Dps3xxPressureSensor.measureTempOnce(temperature);
-   * the commented line below does exactly the same as the one above, but you can also config the precision
-   * oversampling can be a value from 0 to 7
-   * the Dps 3xx will perform 2^oversampling internal temperature measurements and combine them to one result with higher precision
-   * measurements with higher precision take more time, consult datasheet for more information
-   */
+
   ret = Dps3xxPressureSensor.measureTempOnce(temp, oversampling); //mjeri temperaturu, oversampling - uzmi vise uzoraka (2^n, n=0..7)
 
   if (ret != 0) {
@@ -181,7 +146,6 @@ void mjerenjeDPS(){
 
 
 void mjerenjeSHT(){
-
 
   select_channel_i2c(SHT35_IIC_CH);
   if (NO_ERROR == sensor.read_meas_data_single_shot(HIGH_REP_WITH_STRCH, &temp, &hum)) {
@@ -276,6 +240,46 @@ void resetStatistics() {
   //Serial.println(msg);
   u8g2.sendBuffer();
   delay(500);
+}
+
+
+
+void inicijalizacijaAlarma(Alarms *alarms){
+
+    bool hasPrefs = prefs.getBool("valid", false);
+
+  if (hasPrefs){
+    Serial.println("Saved settings found. ");
+    float tmp;
+    // Read settings into a temporary variable and store if no error.
+    // In case of missing key-value pair or other error, getFloat returns NaN
+    tmp = prefs.getFloat("humidity_low");
+    if (!isnan(tmp)) alarms->humidity_low = tmp;
+    tmp = prefs.getFloat("humidity_high");
+    if (!isnan(tmp)) alarms->humidity_high = tmp;
+    tmp = prefs.getFloat("temperature_low");
+    if (!isnan(tmp)) alarms->temperature_low = tmp;
+    tmp = prefs.getFloat("temperature_high");
+    if (!isnan(tmp)) alarms->temperature_high = tmp;
+  }
+  else{
+    Serial.println("Saved settings not found, using default values."); 
+    prefs.putFloat("humidity_low", alarms->humidity_low); 
+    prefs.putFloat("humidity_high", alarms->humidity_high); 
+    prefs.putFloat("temperature_low", alarms->temperature_low); 
+    prefs.putFloat("temperature_high", alarms->temperature_high); 
+    prefs.putBool("valid", true);
+  }
+  Serial.println("Configured alarms: ");
+  Serial.print("Min. temp.:");
+  Serial.println(alarms->temperature_low);
+  Serial.print("Max. temp.:");
+  Serial.println(alarms->temperature_high);
+  Serial.print("Min. humidity.:");
+  Serial.println(alarms->humidity_low);
+  Serial.print("Max. humidity.:");
+  Serial.println(alarms->humidity_high);
+
 }
 
 

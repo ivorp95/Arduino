@@ -41,8 +41,8 @@ int16_t ret;
 String msg = ""; //priprema poruke koja ce se poslati na serial i u buffer za OLED (SSD1306)
 Preferences prefs;
 
-enum Mode {TRENUTNO, STATISTIKA, IZBORNIK, RESET};
-Mode displayMode = TRENUTNO;
+enum Mode {NULA, TRENUTNO, STATISTIKA, IZBORNIK};
+Mode displayMode = NULA;
 
 char unos;
 const int touchPin = T0; //GPIO4      touch sensor spojiti na gpio4
@@ -56,6 +56,7 @@ float humMin = 100.0, humMax = -100.0;
 float pressMin = 1000.0, pressMax = -1000.0;
 float tempAvg = 0.0, humAvg = 0.0, pressAvg = 0.0;
 unsigned long readingsCount = 0;
+
 
 
 //Gloabals here
