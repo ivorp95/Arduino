@@ -2,6 +2,9 @@
 
 void setup()
 {
+
+
+  initWifi();
   
   DeserializationError error = deserializeJson(doc, jsonstring);
     // Test if parsing succeeds.
@@ -68,7 +71,7 @@ void loop()
   // Read sensors and process new reading if
   // more than one second elapsed since last reading.
   if (currentMillis - previousMillis >= 1000) {
-    handleSensors();
+    //handleSensors();
     handleAlarms();
     previousMillis = currentMillis; // Remember time of this reading.
   }
@@ -79,6 +82,7 @@ void loop()
   if (WiFi.status() != WL_CONNECTED) {
     initWifi();
   }
+
 }
 
 

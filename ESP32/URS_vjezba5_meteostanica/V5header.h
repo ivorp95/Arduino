@@ -26,7 +26,7 @@
 #include <WiFiClient.h>
 #include <ESPmDNS.h>
 
-String ssid = "Ivors21";
+String ssid = "ivors21";
 String wifi_pass = "";
 
 StaticJsonDocument<500> doc;
