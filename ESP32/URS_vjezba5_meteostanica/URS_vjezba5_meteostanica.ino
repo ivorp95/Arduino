@@ -30,12 +30,12 @@ String hostname = "192.168.13.250";
 unsigned int server_port = 3000;
 unsigned int IDMeteoStation = 0;
 
-const int ALARM_PIN = 27;  // Alarm LED pin
+//const int ALARM_PIN = 27;  // Alarm LED pin
 
 char* LOGFILE = "/sensor_log.csv";
 // Log every half hour (1800 seconds):
 int sample_count = 0;
-const int LOG_EVERY  = 10;
+const int LOG_EVERY  = 600;
 
 
 //Dps3xx Dps3xxPressureSensor = Dps3xx();
@@ -50,8 +50,9 @@ enum AlarmLimit {A_LO, A_HI};
 const int num_sensors = 2;
 float sensor_value[2];
 
+
 // Default alarm values:
-float alarms[num_sensors][2] = {{18.0f, 23.0f}, {20.0f, 60.0f}};
+float alarms[num_sensors][2] = {{18.0f, 27.0f}, {20.0f, 70.0f}};
 unsigned long previousMillis = 0;
 unsigned long currentMillis = 0;
 
@@ -60,9 +61,7 @@ const String www_header = "<!DOCTYPE html><html><head><title>Veleri-OI-meteo sta
 
 
 
-void setup()
-{
-
+void setup(){
 
   initWifi();
   
@@ -81,7 +80,7 @@ void setup()
   }
 
 
-  pinMode(ALARM_PIN, OUTPUT);
+  //pinMode(ALARM_PIN, OUTPUT);
   Serial.begin(115200);
 
   select_channel_i2c(OLED_IIC_CH);
@@ -202,7 +201,8 @@ void sendCurrentMeasurements(String hostname, unsigned int port) {
   StaticJsonDocument<capacity> doc;
 
   for (int i = 0; i < num_sensors; i++) {
-    doc[i]["IDMeteoStation"] = IDMeteoStation; doc[i]["IDSensor"] = i;
+    doc[i]["IDMeteoStation"] = IDMeteoStation; 
+    doc[i]["IDSensor"] = i;
     doc[i]["value"] = sensor_value[i];
   }
   String jsonMessage;
@@ -220,6 +220,7 @@ void sendCurrentMeasurements(String hostname, unsigned int port) {
 void handleAlarms() {
   bool alarm = false;
   select_channel_i2c(OLED_IIC_CH);
+  u8g2.clearBuffer();
   if (sensor_value[S_TEMP] > alarms[S_TEMP][A_HI]) {
     alarm = true;
     u8g2.drawStr(0, 42, "HIGH TEMPERATURE");
@@ -239,6 +240,7 @@ void handleAlarms() {
     u8g2.sendBuffer();
   }
   digitalWrite(ALARM_PIN, alarm);
+  delay(1000);
 }
 
 
@@ -315,7 +317,8 @@ void processJsonAlarm(const JsonObject& jo) {
   float tmp;
   if (jo.containsKey("hi_value")) {
     tmp = jo["hi_value"].as<float>(); 
-    Serial.print("Sensor"); Serial.print(id);
+    Serial.print("Sensor"); 
+    Serial.print(id);
     Serial.print(" new high alarm value:"); 
     Serial.println(tmp);
     alarms[id][A_HI] = tmp;
