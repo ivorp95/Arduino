@@ -1,5 +1,67 @@
 #include <V5header.h>
 
+String ssid = "Villavista24- extender";
+String wifi_pass = "Villavista24";
+
+StaticJsonDocument<500> doc;
+char jsonstring[] = "{\"key\":\"value\"}"; 
+
+HTTPClient client; 
+
+int GET();
+int POST(uint8_t * payload, size_t size);
+int POST(String payload);
+int PUT(uint8_t * payload, size_t size);
+int PUT(String payload);
+
+String response;
+
+String header(const char* name);
+String header(size_t i);
+String headerName(size_t i);
+int headers();
+bool hasHeader(const char* name); 
+
+Preferences prefs;
+AsyncWebServer server(80);
+
+// Host name of the app server:
+String hostname = "192.168.13.119";
+unsigned int server_port = 3000;
+unsigned int IDMeteoStation = 0;
+
+const unsigned char SCLPIN = 22;
+const unsigned char SHT35_IIC_ADDR = 0x45; 
+SHT35 sensor(SCLPIN, SHT35_IIC_ADDR);
+const int ALARM_PIN = 27;  // Alarm LED pin
+
+
+char* LOGFILE = "/sensor_log.csv";
+// Log every half hour (1800 seconds):
+int sample_count = 0;
+const int LOG_EVERY  = 1800;
+
+
+// Init display:
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0);
+
+
+// Sensor value storage:
+enum Sensors {S_TEMP, S_HUMIDITY};  // Sensor IDs
+enum AlarmLimit {A_LO, A_HI};
+const int num_sensors = 2;
+float sensor_value[2];
+
+// Default alarm values:
+float alarms[num_sensors][2] = {{18.0f, 23.0f}, {20.0f, 60.0f}};
+unsigned long previousMillis = 0;
+unsigned long currentMillis = 0;
+
+// WWW root
+const String www_header = "<!DOCTYPE html><html><head><title>Veleri-OI-meteo station</title><style>body {background-color: white;text-align: center;color: black;font- family: Arial, Helvetica, sans-serif;}</style></head><body><h1>Veleri-OI-meteo station</h1>";
+
+
+
 void setup()
 {
 
@@ -14,7 +76,7 @@ void setup()
     return;
   }
 
-  client.begin("http://aserver.example/foo?bar=1");
+  client.begin("http://192.168.13.119/");
 
   if (client.GET() > 0){ // Send request and check the error code
   response = client.getString();
@@ -25,6 +87,7 @@ void setup()
   Serial.begin(115200);
   u8g2.begin();
   u8g2.setFont(u8g2_font_profont12_tr);
+
   if (sensor.init())
     Serial.println("Sensor init failed!");
 
@@ -71,7 +134,7 @@ void loop()
   // Read sensors and process new reading if
   // more than one second elapsed since last reading.
   if (currentMillis - previousMillis >= 1000) {
-    //handleSensors();
+    handleSensors();
     handleAlarms();
     previousMillis = currentMillis; // Remember time of this reading.
   }
