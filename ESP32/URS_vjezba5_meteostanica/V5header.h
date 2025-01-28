@@ -1,6 +1,7 @@
 
 #include <ArduinoJson.h>
 #include <ArduinoJson.hpp>
+#include <Arduino.h>
 
 #include <cmath> 
 #include <cstdlib> 

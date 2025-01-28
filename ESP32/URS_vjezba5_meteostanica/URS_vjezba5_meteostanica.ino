@@ -35,7 +35,7 @@ const int ALARM_PIN = 27;  // Alarm LED pin
 char* LOGFILE = "/sensor_log.csv";
 // Log every half hour (1800 seconds):
 int sample_count = 0;
-const int LOG_EVERY  = 1800;
+const int LOG_EVERY  = 10;
 
 
 //Dps3xx Dps3xxPressureSensor = Dps3xx();
@@ -120,11 +120,11 @@ void setup()
     Serial.println("Error setting up MDNS responder!");
     }
 
-  select_channel_i2c(OLED_IIC_CH);
   Serial.println("mDNS responder started");
   delay(1000);
   // Show log file at startup:
   displayFile(SPIFFS, u8g2, LOGFILE);
+  delay(1500);
   previousMillis = millis();
 }
 
@@ -485,11 +485,12 @@ void initWifi() {
       Serial.println("WiFi connected");
       Serial.println("IP address: "); 
       Serial.println(WiFi.localIP());
-// Attempt to get time from NTP on successful wifi connection: initTime();
-  } else {
-    WiFi.disconnect();
-    Serial.println("Wifi connection failed, continuing without wifi."); 
-  }
+      // Attempt to get time from NTP on successful wifi connection: 
+      initTime();
+    } else {
+        WiFi.disconnect();
+        Serial.println("Wifi connection failed, continuing without wifi."); 
+      }
 };
 
 
@@ -507,12 +508,22 @@ void handleLog(AsyncWebServerRequest *request) {
 
 // Get current time from the Internet NTP service
 void initTime(){
-    const char* ntpServer = "pool.ntp.org";
+    const char* ntpServer = "europe.pool.ntp.org";
     // Time zone and daylight savings time can be set,
     // we will use UTC time so no offset.
-    const long UTCOffset_sec = 0;
+    const long UTCOffset_sec = 3600;
     const int dstOffset_sec = 0;
     configTime(UTCOffset_sec, dstOffset_sec, ntpServer);
+};
+
+// Returns current date and time as string or xxxx-xx-xx,xx:xx:xx if time is not set 
+String formatTime(){
+  // Structure used to hold time data (defined in time.h):
+  tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    return String("xxxx-xx-xx,xx:xx:xx"); 
+  }
+  return String(timeinfo.tm_year+1900) + "-" + String(timeinfo.tm_mon+1) + "-" +String(timeinfo.tm_mday) + "," + String(timeinfo.tm_hour) + ":" + String(timeinfo.tm_min) + ":" + String(timeinfo.tm_sec);
 };
 
 // Recieve and parse commands over serial connection. 
@@ -562,6 +573,7 @@ void appendFile(fs::FS &fs, const char * path, const char * message) {
 
 // Reads file /path/ on filesystem /fs/ and sends it over serial port and displays on screen.
 void displayFile(fs::FS &fs, U8G2& disp, const char * path) {
+  select_channel_i2c(OLED_IIC_CH);
   Serial.printf("Reading file: %s\r\n", path);
   File file = fs.open(path);
   if (!file || file.isDirectory()) {
@@ -585,18 +597,12 @@ void displayFile(fs::FS &fs, U8G2& disp, const char * path) {
   file.close();
 };
 
-// Returns current date and time as string or xxxx-xx-xx,xx:xx:xx if time is not set 
-String formatTime(){
-  // Structure used to hold time data (defined in time.h):
-  tm timeinfo;
-  if(!getLocalTime(&timeinfo)){
-    return String("xxxx-xx-xx,xx:xx:xx"); 
-  }
-  return String(timeinfo.tm_year+1900) + "-" + String(timeinfo.tm_mon+1) + "-" +String(timeinfo.tm_mday) + "," + String(timeinfo.tm_hour) + ":" + String(timeinfo.tm_min) + ":" + String(timeinfo.tm_sec);
-};
 
+
+/*
 String processor(const String& var){
   if(var == "VRIJEDNOST_TEMPERATURE")
     return String(sensor_value[0]);
   return String();
 };
+*/
