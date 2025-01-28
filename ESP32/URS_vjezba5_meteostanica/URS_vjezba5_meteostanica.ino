@@ -1,78 +1,23 @@
-#include <cmath> 
-#include <cstdlib> 
-#define err_t sht_err_t 
-#include <Seeed_SHT35.h> 
-#undef err_t
-#include <U8g2lib.h> 
-#include <Wire.h>
-// Persistent storage related headers:
-#include <Preferences.h>
-
-#include "FS.h"
-#include <LittleFS.h>
-#define SPIFFS LittleFS 
-
-
-#include <WiFi.h>
-#include <AsyncTCP.h>
-#include <AsyncJson.h> 
-#include <ArduinoJson.h> 
-#include <ESPAsyncWebServer.h> 
-#include <HTTPClient.h> 
-#include <time.h>
-#include <WiFiClient.h>
-#include <ESPmDNS.h>
-
-String ssid = "Ivors21";
-String wifi_pass = "";
-
-
-#define FORMAT_SPIFFS_IF_FAILED false
-Preferences prefs;
-AsyncWebServer server(80);
-String ssid = "DEFAULT_SSID";
-String wifi_pass = "default_passphrase";
-
-// Host name of the app server:
-String hostname = "192.168.5.24";
-unsigned int server_port = 3000;
-unsigned int IDMeteoStation = 0;
-const unsigned char SCLPIN = 22;
-const unsigned char SHT35_IIC_ADDR = 0x45; 
-SHT35 sensor(SCLPIN, SHT35_IIC_ADDR);
-const int ALARM_PIN = 4;  // Alarm LED pin
-
-
-const char* LOGFILE = "/sensor_log.csv";
-// Log every half hour (1800 seconds):
-int sample_count = 0;
-const int LOG_EVERY  = 1800;
-
-
-// Init display:
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0);
-
-
-// Sensor value storage:
-enum Sensors {S_TEMP, S_HUMIDITY};  // Sensor IDs
-enum AlarmLimit {A_LO, A_HI};
-const int num_sensors = 2;
-float sensor_value[2];
-
-// Default alarm values:
-float alarms[num_sensors][2] = {{18.0f, 23.0f}, {20.0f, 60.0f}};
-unsigned long previousMillis = 0;
-unsigned long currentMillis = 0;
-
-// WWW root
-const String www_header = "<!DOCTYPE html><html><head><title>Veleri-OI-meteo station</title><style>body {background-color: white;text-align: center;color: black;font- family: Arial, Helvetica, sans-serif;}</style></head><body><h1>Veleri-OI-meteo station</h1>";
-
-
-
-
+#include <V5header.h>
 
 void setup()
 {
+  
+  DeserializationError error = deserializeJson(doc, jsonstring);
+    // Test if parsing succeeds.
+  if (error) {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.f_str());
+    return;
+  }
+
+  client.begin("http://aserver.example/foo?bar=1");
+
+  if (client.GET() > 0){ // Send request and check the error code
+  response = client.getString();
+  }
+
+
   pinMode(ALARM_PIN, OUTPUT);
   Serial.begin(115200);
   u8g2.begin();
@@ -96,9 +41,9 @@ void setup()
 // REST API initialization:
   server.on("/set_alarm", HTTP_GET, handleSetAlarm); 
   server.on("/all", handleAll); 
-  AsyncCallbackJsonWebHandler* handleSetAlarmJson = newAsyncCallbackJsonWebHandler("/set_alarms", jsonAlarmHandler); 
+  AsyncCallbackJsonWebHandler* handleSetAlarmJson = new AsyncCallbackJsonWebHandler("/set_alarms", jsonAlarmHandler); 
   server.addHandler(handleSetAlarmJson); 
-  AsyncCallbackJsonWebHandler* handleSetConfigJson = newAsyncCallbackJsonWebHandler("/config", jsonConfigHandler); 
+  AsyncCallbackJsonWebHandler* handleSetConfigJson = new AsyncCallbackJsonWebHandler("/config", jsonConfigHandler); 
   server.addHandler(handleSetConfigJson);
   server.begin();
 
@@ -471,20 +416,9 @@ void handleRoot(AsyncWebServerRequest *request) {
   request->send(200, "text/html", www_header + part1 + String(sensor_value[S_TEMP]) + part2 + String(sensor_value[S_HUMIDITY]) + part3); 
 };
 
-// www log/ page
-void handleLog() {
-  File file = SPIFFS.open(LOGFILE);
-  if (!file || file.isDirectory()) {
-    server.send(500, "text/html", "Error reading logfile.");
-    return; 
-  }
-  String buffer;
-  while (file.available()) {
-    char next = file.read();
-    buffer += next;
-  }
-  server.send(200, "text/plain", buffer);
-  file.close();
+// www /log page
+void handleLog(AsyncWebServerRequest *request) {
+  request->send(SPIFFS, "/sensor_log.csv", "text/plain"); 
 };
 
 // Get current time from the Internet NTP service
@@ -575,4 +509,10 @@ String formatTime(){
     return String("xxxx-xx-xx,xx:xx:xx"); 
   }
   return String(timeinfo.tm_year+1900) + "-" + String(timeinfo.tm_mon+1) + "-" +String(timeinfo.tm_mday) + "," + String(timeinfo.tm_hour) + ":" + String(timeinfo.tm_min) + ":" + String(timeinfo.tm_sec);
+};
+
+String processor(const String& var){
+  if(var == "VRIJEDNOST_TEMPERATURE")
+    return String(sensor_value[0]);
+  return String();
 };
