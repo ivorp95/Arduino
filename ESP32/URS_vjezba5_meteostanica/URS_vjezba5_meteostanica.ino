@@ -26,15 +26,11 @@ Preferences prefs;
 AsyncWebServer server(80);
 
 // Host name of the app server:
-String hostname = "192.168.13.119";
+String hostname = "192.168.13.250";
 unsigned int server_port = 3000;
 unsigned int IDMeteoStation = 0;
 
-const unsigned char SCLPIN = 22;
-const unsigned char SHT35_IIC_ADDR = 0x45; 
-SHT35 sensor(SCLPIN, SHT35_IIC_ADDR);
 const int ALARM_PIN = 27;  // Alarm LED pin
-
 
 char* LOGFILE = "/sensor_log.csv";
 // Log every half hour (1800 seconds):
@@ -42,8 +38,10 @@ int sample_count = 0;
 const int LOG_EVERY  = 1800;
 
 
-// Init display:
+//Dps3xx Dps3xxPressureSensor = Dps3xx();
+SHT35 sensor(SCLPIN, SHT35_IIC_ADDR);
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0);
+
 
 
 // Sensor value storage:
@@ -76,7 +74,7 @@ void setup()
     return;
   }
 
-  client.begin("http://192.168.13.119/");
+  client.begin("http://192.168.13.250/");
 
   if (client.GET() > 0){ // Send request and check the error code
   response = client.getString();
@@ -85,9 +83,12 @@ void setup()
 
   pinMode(ALARM_PIN, OUTPUT);
   Serial.begin(115200);
+
+  select_channel_i2c(OLED_IIC_CH);
   u8g2.begin();
   u8g2.setFont(u8g2_font_profont12_tr);
 
+  select_channel_i2c(SHT35_IIC_CH);
   if (sensor.init())
     Serial.println("Sensor init failed!");
 
@@ -119,6 +120,7 @@ void setup()
     Serial.println("Error setting up MDNS responder!");
     }
 
+  select_channel_i2c(OLED_IIC_CH);
   Serial.println("mDNS responder started");
   delay(1000);
   // Show log file at startup:
@@ -134,6 +136,7 @@ void loop()
   // Read sensors and process new reading if
   // more than one second elapsed since last reading.
   if (currentMillis - previousMillis >= 1000) {
+    //select_channel_i2c(SHT35_IIC_CH);
     handleSensors();
     handleAlarms();
     previousMillis = currentMillis; // Remember time of this reading.
@@ -149,17 +152,27 @@ void loop()
 }
 
 
+void select_channel_i2c(uint8_t channel) {
+  Wire.beginTransmission(TCA9548A_DEF_ADDR);
+  Wire.write(1 << channel);
+  Wire.endTransmission();
+}
+
+
 
 // Read, display and log sensor values.
 void handleSensors() {
+  select_channel_i2c(SHT35_IIC_CH);
   if (NO_ERROR == sensor.read_meas_data_single_shot(HIGH_REP_WITH_STRCH,&(sensor_value[S_TEMP]),&(sensor_value[S_HUMIDITY])) ){
           sample_count++;
+          select_channel_i2c(OLED_IIC_CH);
           u8g2.clearBuffer();
           u8g2.setFont(u8g2_font_profont12_tr);
           String msg = "Temperature: " + String(sensor_value[S_TEMP]) + " °C ";
           u8g2.drawStr(0, 10, msg.c_str());
           Serial.println(msg);
-          msg = "Humidity: " + String(sensor_value[S_HUMIDITY]) + " % "; u8g2.drawStr(0, 28, msg.c_str());
+          msg = "Humidity: " + String(sensor_value[S_HUMIDITY]) + " % "; 
+          u8g2.drawStr(0, 28, msg.c_str());
           Serial.println(msg);
           u8g2.sendBuffer();
           try {
@@ -206,6 +219,7 @@ void sendCurrentMeasurements(String hostname, unsigned int port) {
 // Show an alarm if any value is outside set limits:
 void handleAlarms() {
   bool alarm = false;
+  select_channel_i2c(OLED_IIC_CH);
   if (sensor_value[S_TEMP] > alarms[S_TEMP][A_HI]) {
     alarm = true;
     u8g2.drawStr(0, 42, "HIGH TEMPERATURE");
@@ -237,7 +251,8 @@ void handleSetAlarm(AsyncWebServerRequest *request) {
   String buf;
   String confirm;
   if (params < 1) {
-    Serial.println("missing arguments"); request->send(400, "text/plain", "missing arguments");
+    Serial.println("missing arguments"); 
+    request->send(400, "text/plain", "missing arguments");
   } else {
   if (request->hasArg("a_temp_lo")) {
     buf = request->arg("a_temp_lo");
@@ -299,8 +314,10 @@ void processJsonAlarm(const JsonObject& jo) {
     return;
   float tmp;
   if (jo.containsKey("hi_value")) {
-    tmp = jo["hi_value"].as<float>(); Serial.print("Sensor"); Serial.print(id);
-    Serial.print(" new high alarm value:"); Serial.println(tmp);
+    tmp = jo["hi_value"].as<float>(); 
+    Serial.print("Sensor"); Serial.print(id);
+    Serial.print(" new high alarm value:"); 
+    Serial.println(tmp);
     alarms[id][A_HI] = tmp;
   }
   
