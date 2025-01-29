@@ -1,7 +1,8 @@
+#include <Dps3xx.h>
+#include <DpsClass.h>
 
 #include <ArduinoJson.h>
 #include <ArduinoJson.hpp>
-#include <Arduino.h>
 
 #include <cmath> 
 #include <cstdlib> 
@@ -29,18 +30,18 @@
 
 
 //Defines here
-#define OLED_ROW_0 15
-#define OLED_ROW_1 31
-#define OLED_ROW_2 47
-#define OLED_ROW_3 63
+#define OLED_ROW_0 10
+#define OLED_ROW_1 28
+#define OLED_ROW_2 44
+#define OLED_ROW_3 60
 
 const unsigned char TCA9548A_DEF_ADDR = 0x70;  //<-- adresa i2c multipleksora
-//const unsigned char DPS310_IIC_ADDR = 0x77;
+const unsigned char DPS310_IIC_ADDR = 0x77;
 const unsigned char SHT35_IIC_ADDR = 0x45;
 const unsigned char SCLPIN = 22;
 //const unsigned char SDAPIN = 21;
 //const unsigned char NONPIN = 255;
-//const unsigned char DPS310_IIC_CH = 0;
+const unsigned char DPS310_IIC_CH = 0;
 const unsigned char SHT35_IIC_CH = 1;
 const unsigned char OLED_IIC_CH = 2;
 

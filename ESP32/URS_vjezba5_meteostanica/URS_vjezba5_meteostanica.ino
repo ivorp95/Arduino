@@ -38,11 +38,13 @@ int sample_count = 0;
 const int LOG_EVERY  = 600;
 
 
-//Dps3xx Dps3xxPressureSensor = Dps3xx();
+Dps3xx Dps3xxPressureSensor = Dps3xx();
+float temp;
+float press;
+uint8_t oversampling = 7;
+
 SHT35 sensor(SCLPIN, SHT35_IIC_ADDR);
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0);
-
-
 
 // Sensor value storage:
 enum Sensors {S_TEMP, S_HUMIDITY};  // Sensor IDs
@@ -95,6 +97,11 @@ void setup(){
     Serial.println("SPIFFS Mount Failed");
     return;
   }
+
+  select_channel_i2c(DPS310_IIC_CH);
+  Dps3xxPressureSensor.begin(Wire);
+
+
   // Restore saved settings
   initPrefs();
   // Start wifi connection:
@@ -161,17 +168,46 @@ void select_channel_i2c(uint8_t channel) {
 
 // Read, display and log sensor values.
 void handleSensors() {
+  int16_t ret;
+  String msg;    
+  select_channel_i2c(DPS310_IIC_CH);
+
+  ret = Dps3xxPressureSensor.measureTempOnce(temp, oversampling); //mjeri temperaturu, oversampling - uzmi vise uzoraka (2^n, n=0..7)
+  if (ret != 0) {
+    msg = "Temp@DPS FAIL! ret = " + String(ret);
+  } else {
+    msg = "Temp@DPS: " + String(temp) + " *C"; //napravi poruku
+  }
+  Serial.println(msg);
+  select_channel_i2c(OLED_IIC_CH);
+  u8g2.clearBuffer();
+  u8g2.setFont(u8g2_font_profont12_tr);
+  u8g2.drawStr(0, OLED_ROW_2, msg.c_str()); // stavi poruku u buffer, ovo je jos u RAM MCU-a
+
+  select_channel_i2c(DPS310_IIC_CH);
+  ret = Dps3xxPressureSensor.measurePressureOnce(press, oversampling);
+  if (ret != 0) {
+    msg = "Pressure read FAIL! ret = " + String(ret);
+  } else {
+    msg = "Pressure: " + String(press / 100) + " hPa";
+  }
+  Serial.println(msg);
+  select_channel_i2c(OLED_IIC_CH);
+  u8g2.setFont(u8g2_font_profont12_tr);
+  u8g2.drawStr(0, OLED_ROW_3, msg.c_str());
+
+
+
   select_channel_i2c(SHT35_IIC_CH);
   if (NO_ERROR == sensor.read_meas_data_single_shot(HIGH_REP_WITH_STRCH,&(sensor_value[S_TEMP]),&(sensor_value[S_HUMIDITY])) ){
           sample_count++;
           select_channel_i2c(OLED_IIC_CH);
-          u8g2.clearBuffer();
           u8g2.setFont(u8g2_font_profont12_tr);
           String msg = "Temperature: " + String(sensor_value[S_TEMP]) + " °C ";
-          u8g2.drawStr(0, 10, msg.c_str());
+          u8g2.drawStr(0, OLED_ROW_0, msg.c_str());
           Serial.println(msg);
           msg = "Humidity: " + String(sensor_value[S_HUMIDITY]) + " % "; 
-          u8g2.drawStr(0, 28, msg.c_str());
+          u8g2.drawStr(0, OLED_ROW_1, msg.c_str());
           Serial.println(msg);
           u8g2.sendBuffer();
           try {
