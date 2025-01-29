@@ -239,7 +239,7 @@ void handleAlarms() {
     u8g2.drawStr(0, 56, "LOW HUMIDITY");
     u8g2.sendBuffer();
   }
-  digitalWrite(ALARM_PIN, alarm);
+  //digitalWrite(ALARM_PIN, alarm);
   delay(1000);
 }
 
@@ -498,10 +498,12 @@ void initWifi() {
 
 
 void handleRoot(AsyncWebServerRequest *request) {
-  const String part1 = "<p>Temperature: ";
-  const String part2 = "&deg;C</p><p>Humidity: ";
-  const String part3 = " %</p> </p> <a href=\"log\">Sensor log</a></p></body></html>"; 
-  request->send(200, "text/html", www_header + part1 + String(sensor_value[S_TEMP]) + part2 + String(sensor_value[S_HUMIDITY]) + part3); 
+  const String part1 = "<p>Temperature@SHT35: ";
+  const String part2 = "&deg;C</p><p>Humidity@SHT35: ";
+  const String part3 = "%<p>Temperature@DPS310: ";
+  const String part4 = "&deg;C</p><p>Pressure@DPS310: ";
+  const String part5 = " hPa</p> </p> <a href=\"log\">Sensor log</a></p></body></html>"; 
+  request->send(200, "text/html", www_header + part1 + String(sensor_value[S_TEMP]) + part2 + String(sensor_value[S_HUMIDITY]) + part3 + part4 + part5); 
 };
 
 // www /log page
