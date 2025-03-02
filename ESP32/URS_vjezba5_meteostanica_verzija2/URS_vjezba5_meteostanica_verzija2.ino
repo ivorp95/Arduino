@@ -1,7 +1,53 @@
-#include <V5header.h>
+#include <Dps3xx.h>
+#include <DpsClass.h>
 
-String ssid = "Villavista24- extender";
-String wifi_pass = "Villavista24";
+#include <ArduinoJson.h>
+#include <ArduinoJson.hpp>
+
+#include <cmath> 
+#include <cstdlib> 
+#define err_t sht_err_t 
+#include <Seeed_SHT35.h> 
+#undef err_t
+#include <U8g2lib.h> 
+#include <Wire.h>
+// Persistent storage related headers:
+#include <Preferences.h>
+
+#include "FS.h"
+#include <LittleFS.h>
+#define SPIFFS LittleFS 
+#define FORMAT_SPIFFS_IF_FAILED false
+
+#include <WiFi.h>
+#include <AsyncTCP.h>
+#include <AsyncJson.h> 
+#include <ESPAsyncWebServer.h> 
+#include <HTTPClient.h> 
+#include <time.h>
+#include <WiFiClient.h>
+#include <ESPmDNS.h>
+
+
+//Defines here
+#define OLED_ROW_0 10
+#define OLED_ROW_1 28
+#define OLED_ROW_2 44
+#define OLED_ROW_3 60
+
+const unsigned char TCA9548A_DEF_ADDR = 0x70; 
+const unsigned char DPS310_IIC_ADDR = 0x77;
+const unsigned char SHT35_IIC_ADDR = 0x45;
+const unsigned char SCLPIN = 22;
+//const unsigned char SDAPIN = 21;
+//const unsigned char NONPIN = 255;
+const unsigned char DPS310_IIC_CH = 0;
+const unsigned char SHT35_IIC_CH = 1;
+const unsigned char OLED_IIC_CH = 2;
+
+
+String ssid = "ivors21";
+String wifi_pass = "";
 
 StaticJsonDocument<500> doc;
 char jsonstring[] = "{\"key\":\"value\"}"; 
@@ -59,9 +105,7 @@ unsigned long previousMillis = 0;
 unsigned long currentMillis = 0;
 
 // WWW root
-const String www_header = "<!DOCTYPE html><html><head><title>Veleri-OI-meteo station</title><style>body 
-{background-color: white;text-align: center;color: black;font- family: Arial, Helvetica, sans-serif;}
-</style></head><body><h1>Veleri-OI-meteo station</h1>";
+const String www_header = "<!DOCTYPE html><html><head><title>Veleri-OI-meteo station</title><style>body{background-color: white;text-align: center;color: black;font- family: Arial, Helvetica, sans-serif;}</style></head><body><h1>Veleri-OI-meteo station</h1>";
 
 
 
@@ -542,7 +586,8 @@ void handleRoot(AsyncWebServerRequest *request) {
   const String part3 = "%<p>Temperature@DPS310: ";
   const String part4 = "&deg;C</p><p>Pressure@DPS310: ";
   const String part5 = " hPa</p> </p> <a href=\"log\">Sensor log</a></p></body></html>"; 
-  request->send(200, "text/html", www_header + part1 + String(sensor_value[S_TEMP]) + part2 + String(sensor_value[S_HUMIDITY]) + part3 + part4 + part5); 
+  request->send(200, "text/html", www_header + part1 + String(sensor_value[S_TEMP]) + part2 
+  + String(sensor_value[S_HUMIDITY]) + part3 + String(temp) + part4 +String(press) + part5); 
 };
 
 // www /log page

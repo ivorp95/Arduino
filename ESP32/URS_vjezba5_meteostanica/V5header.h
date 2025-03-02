@@ -35,7 +35,7 @@
 #define OLED_ROW_2 44
 #define OLED_ROW_3 60
 
-const unsigned char TCA9548A_DEF_ADDR = 0x70;  //<-- adresa i2c multipleksora
+const unsigned char TCA9548A_DEF_ADDR = 0x70; 
 const unsigned char DPS310_IIC_ADDR = 0x77;
 const unsigned char SHT35_IIC_ADDR = 0x45;
 const unsigned char SCLPIN = 22;
